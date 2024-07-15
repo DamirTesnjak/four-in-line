@@ -1,0 +1,13 @@
+.circle-container {
+    display: grid;
+    width: 80px;
+    height: 80px;
+    background-color:green;
+}
+
+.circle {
+    width: 80%;
+    height: 80%;
+    background-color: gray;
+    border-radius: 70px;
+}
