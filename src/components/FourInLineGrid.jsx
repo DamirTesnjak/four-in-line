@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Circle } from './Circle';
 import { generateRowsArr } from "../utils/generateRowsArr";
 import { generateColumnsArr } from "../utils/generateColumnsArr";
@@ -62,43 +62,13 @@ function generateDisplayGrid(rows, columns) {
     )
 }
 
-function generateInputTockenButtons(columns) {
-    const buttonsArr = [];
-    let i = 0;
-    for (i; i < columns; i++) {
-        buttonsArr.push(`button${i}`);
-    };
-    return (
-        <div className="buttons-container">
-            {
-                buttonsArr.map((button) => {
-                    return (
-                        <div
-                            id={button}
-                            key={button}
-                            className='button-input'
-                            role="button"
-                        >{button}</div>
-                    )
-                })
-            }
-        </div>
-    )
-}
-
-function handleClick(column, player, columnsGrid, setColumnsGrid) {
-    addToken(column, player, columnsGrid, setColumnsGrid);
-
-}
-
 export function FourInLineGrid() {
     const [numRows, setNumRow] = useState(4);
     const [numColumns, setNumColumns] = useState(4);
-    const [player, setPlayer] = useState(false)
+    const [player, setPlayer] = useState(false);
 
     const rowArr = generateRowsArr(numRows, numColumns);
     const columnsArr = generateColumnsArr(numRows, numColumns);
-    console.log('columnsArr', columnsArr);
     const diagonalsBLTR = generateDiagonals(numColumns, "BLTR");
     const diagonalsBRTL = generateDiagonals(numColumns, "BRTL");
 
@@ -107,102 +77,8 @@ export function FourInLineGrid() {
     const [ diagonalsBLTRGrid, setDiagonalsBLTR ] = useState(diagonalsBLTR);
     const [ diagonalsBRTLGrid, setDiagonalsBRTL ] = useState(diagonalsBRTL);
 
-    const playerFourInLines = ["PPP#", "PP#P", "P#PP", "#PPP"];
-
-    function scanRows() {
-        const columnsGridCopy = [...columnsGrid];
-        const rowsGridCopy = [...rowsGrid];
-        rowsGrid.forEach((row) => {
-            const arrTokens = Object.values(row);
-            let result = false;
-
-            playerFourInLines.forEach((fourInLine, index) => {
-                result = arrTokens.includes(fourInLine);
-                if (result) {
-                    const lineIndex = arrTokens.indexOf(fourInLine);
-                    const emptyIndex = lineIndex.indexOf("#");
-                    columnsGridCopy[lineIndex + emptyIndex][`row${index}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                    rowsGridCopy[index][`row${index}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                    scanDiagonalsGrid("BLTR", numColumns);
-                    scanDiagonalsGrid("BRTL", numColumns);
-                    setRowsGrid(rowsGridCopy);
-                    setColumnsGrid(columnsGridCopy);
-                }
-            })
-        })
-    }
-
-    function scanColumns() {
-        const columnsGridCopy = [...columnsGrid];
-        const rowsGridCopy = [...rowsGrid];
-        let column = 0;
-        for(column; column < columnsGrid.length; column++) {
-            const arrTokens = Object.values(columnsGrid[column]);
-            // first scenario xxx.
-            let result = false;
-            result = arrTokens.includes("#PPP");
-            if (result) {
-                const lineIndex = arrTokens.indexOf("#PPP");
-                const emptyIndex = lineIndex.indexOf("#");
-                columnsGridCopy[column][`row${emptyIndex}column${column}`] = player ? 'P' : 'A';
-                rowsGridCopy[emptyIndex][`row${emptyIndex}column${column}`] = player ? 'P' : 'A';
-                setRowsGrid(rowsGridCopy);
-                setColumnsGrid(columnsGridCopy);
-            }
-        }
-    }
-
-    function scanDiagonalsGrid(direction, columns) {
-        const diagonals = direction === "BLTR" ? diagonalsBLTRGrid : diagonalsBRTLGrid;
-        const diagonalsCopy = [...diagonals];
-        const columnsGridCopy = [...columnsGrid];
-        const rowsGridCopy = [...rowsGrid];
-
-        let diagonalIndex = 0;
-        for(
-            diagonalIndex;
-            diagonalIndex < diagonals.length;
-            diagonalIndex++
-        ) {
-            const arrTokens = Object.values(diagonals[diagonalIndex]);
-            let result = false;
-
-            // eslint-disable-next-line no-loop-func
-            playerFourInLines.forEach((fourInLine, index) => {
-                result = arrTokens.includes(fourInLine);
-                if (result) {
-                    const lineIndex = arrTokens.indexOf(fourInLine);
-                    const emptyIndex = lineIndex.indexOf("#");
-
-                    if (direction === "BLTR") {
-                        diagonalsCopy[index][`row${index - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                        rowsGridCopy[index - lineIndex - emptyIndex][`row${index - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                        columnsGridCopy[lineIndex + emptyIndex][`row${index - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                        setDiagonalsBLTR(diagonalsCopy);
-                        setColumnsGrid(columnsGridCopy);
-                        setRowsGrid(rowsGridCopy);  
-                    }
-                    if (direction === "BRTL") {
-                        diagonalsCopy[index][`row${columns - 1 - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                        rowsGridCopy[columns - 1 - lineIndex - emptyIndex][`row${columns - 1 - lineIndex - emptyIndex}column${index - lineIndex - emptyIndex}`] = player ? 'P' : 'A';
-                        columnsGridCopy[index - lineIndex - emptyIndex][`row${index - lineIndex - emptyIndex}column${index - lineIndex - emptyIndex}`] = player ? 'P' : 'A';
-                        setDiagonalsBRTL(diagonalsCopy);
-                        setColumnsGrid(columnsGridCopy);
-                        setRowsGrid(rowsGridCopy);  
-                    }
-                }
-            })
-        }
-    }
-
-    function addToken(
-        columns,
-        column,
-        player, 
-        columnsGrid,
-        setColumnsGrid,
-    
-    ) {
+    const addToken = useCallback((column) => {
+        console.log('column', column);
         let index = 0;
         while (columnsGrid[column][`row${index}column${column}`] !== '#') {
             index += 1;
@@ -212,18 +88,184 @@ export function FourInLineGrid() {
     
         if (columnsGridCopy.length - 1 <= index) {
     
-            // P - player, A - "artificial inteligence"
-            scanDiagonalsGrid("BLTR", columns);
-            scanDiagonalsGrid("BRTL", columns);
-            scanRows();
-
+            // P - player, A - "artificial inteligence
             columnsGridCopy[column][`row${index}column${column}`] = player ? 'P' : 'A';
             rowsGridCopy[index][`row${column}column${index}`] = player ? 'P' : 'A';
             setColumnsGrid(columnsGridCopy);
             setRowsGrid(rowsGridCopy);
+            setPlayer(!player);
         }
-        return null;
+    }, [columnsGrid, player, rowsGrid]);
+
+    function generateInputTockenButtons(columns) {
+        const buttonsArr = [];
+        let i = 0;
+        for (i; i < columns; i++) {
+            buttonsArr.push(`button${i}`);
+        };
+        return (
+            <div className="buttons-container">
+                {
+                    buttonsArr.map((button, index) => {
+                        return (
+                            <button
+                                id={button}
+                                key={button}
+                                className='button-input'
+                                onClick={() => addToken(index)}
+                            >
+                                {`Column ${index}`}
+                            </button>
+                        )
+                    })
+                }
+            </div>
+        )
     }
+
+    useEffect(() => {
+        const playerFourInLines = ["PPP#", "PP#P", "P#PP", "#PPP"];
+
+        function getRandomInt() {
+            return Math.floor(Math.random() * (numColumns));
+        }
+
+        function scanRows() {
+            const columnsGridCopy = [...columnsGrid];
+            const rowsGridCopy = [...rowsGrid];
+            rowsGrid.every((row) => {
+                const arrTokens = Object.values(row);
+                let result = false;
+    
+                playerFourInLines.every((fourInLine, index) => {
+                    result = arrTokens.includes(fourInLine);
+                    if (result) {
+                        const lineIndex = arrTokens.indexOf(fourInLine);
+                        const emptyIndex = lineIndex.indexOf("#");
+                        columnsGridCopy[lineIndex + emptyIndex][`row${index}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
+                        rowsGridCopy[index][`row${index}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
+                        scanDiagonalsGrid("BLTR", numColumns);
+                        scanDiagonalsGrid("BRTL", numColumns);
+                        setRowsGrid(rowsGridCopy);
+                        setColumnsGrid(columnsGridCopy);
+                        setPlayer(true);
+                        return false
+                    }
+                    return true;
+                })
+                if (result) {
+                    return false;
+                }
+                return true;
+            })
+        }
+    
+        function scanColumns() {
+            const columnsGridCopy = [...columnsGrid];
+            const rowsGridCopy = [...rowsGrid];
+            let column = 0;
+            let result = false;
+            for(column; column < columnsGrid.length; column++) {
+                const arrTokens = Object.values(columnsGrid[column]);
+                // first scenario xxx.
+                result = arrTokens.includes("#PPP");
+                if (result) {
+                    const lineIndex = arrTokens.indexOf("#PPP");
+                    const emptyIndex = lineIndex.indexOf("#");
+                    columnsGridCopy[column][`row${emptyIndex}column${column}`] = player ? 'P' : 'A';
+                    rowsGridCopy[emptyIndex][`row${emptyIndex}column${column}`] = player ? 'P' : 'A';
+                    // scanDiagonalsGrid("BLTR", numColumns);
+                    // scanDiagonalsGrid("BRTL", numColumns);
+                    setRowsGrid(rowsGridCopy);
+                    setColumnsGrid(columnsGridCopy);
+                    setPlayer(true);
+                    return false;
+                }
+            }
+            return true;
+        }
+    
+        function scanDiagonalsGrid(direction) {
+            const diagonals = direction === "BLTR" ? diagonalsBLTRGrid : diagonalsBRTLGrid;
+            const diagonalsCopy = [...diagonals];
+            const columnsGridCopy = [...columnsGrid];
+            const rowsGridCopy = [...rowsGrid];
+    
+            let diagonalIndex = 0;
+            for(
+                diagonalIndex;
+                diagonalIndex < diagonals.length;
+                diagonalIndex++
+            ) {
+                const arrTokens = Object.values(diagonals[diagonalIndex]);
+                let result = false;
+    
+                // eslint-disable-next-line no-loop-func
+                playerFourInLines.every((fourInLine, index) => {
+                    result = arrTokens.includes(fourInLine);
+                    if (result) {
+                        const lineIndex = arrTokens.indexOf(fourInLine);
+                        const emptyIndex = lineIndex.indexOf("#");
+    
+                        if (direction === "BLTR") {
+                            diagonalsCopy[index][`row${index - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
+                            rowsGridCopy[index - lineIndex - emptyIndex][`row${index - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
+                            columnsGridCopy[lineIndex + emptyIndex][`row${index - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
+                            setDiagonalsBLTR(diagonalsCopy);
+                            setColumnsGrid(columnsGridCopy);
+                            setRowsGrid(rowsGridCopy);
+                            setPlayer(true);
+                            return false;
+                        }
+                        if (direction === "BRTL") {
+                            diagonalsCopy[index][`row${numColumns - 1 - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
+                            rowsGridCopy[numColumns - 1 - lineIndex - emptyIndex][`row${numColumns - 1 - lineIndex - emptyIndex}column${index - lineIndex - emptyIndex}`] = player ? 'P' : 'A';
+                            columnsGridCopy[index - lineIndex - emptyIndex][`row${index - lineIndex - emptyIndex}column${index - lineIndex - emptyIndex}`] = player ? 'P' : 'A';
+                            setDiagonalsBRTL(diagonalsCopy);
+                            setColumnsGrid(columnsGridCopy);
+                            setRowsGrid(rowsGridCopy);
+                            setPlayer(true);
+                            return false;  
+                        }
+                    }
+                    return true;
+                })
+                if(result) {
+                    setPlayer(true);
+                    return false;
+                }
+                return true
+            }
+            setPlayer(true);
+        }
+
+        let search = true;
+        
+        if(!player) {
+            if (search) {
+                search = scanDiagonalsGrid("BLTR");
+                console.log('search0', search);
+            }
+            if (search) {
+                search = scanDiagonalsGrid("BRTL");
+                console.log('search1', search);
+            }
+            if (search) {
+                search = scanColumns();
+                console.log('search2', search);
+            }
+            if (search) {
+                search = scanRows();
+                console.log('search3', search);
+            }
+            if(!search) {
+                console.log('search4', search);
+                addToken(getRandomInt());
+            }
+        }
+    }, [addToken, columnsGrid, diagonalsBLTRGrid, diagonalsBRTLGrid, numColumns, player, rowsGrid])
+
+    console.log('test');
 
     return (
         <div className='game-display-container'>
