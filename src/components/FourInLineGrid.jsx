@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+
 import { Circle } from './Circle';
 import { generateRowsArr } from "../utils/generateRowsArr";
 import { generateColumnsArr } from "../utils/generateColumnsArr";
@@ -24,6 +25,7 @@ function generateDiagonals(columns, direction) {
                 x -= 1;
                 y += 1;
             } else { // BRTL
+                x -= 1;
                 y -= 1;
             }
         }
@@ -77,25 +79,55 @@ export function FourInLineGrid() {
     const [ diagonalsBLTRGrid, setDiagonalsBLTR ] = useState(diagonalsBLTR);
     const [ diagonalsBRTLGrid, setDiagonalsBRTL ] = useState(diagonalsBRTL);
 
-    const addToken = useCallback((column) => {
-        console.log('column', column);
-        let index = 0;
-        while (columnsGrid[column][`row${index}column${column}`] !== '#') {
-            index += 1;
+    const updateDiagonalArr = useCallback((diagonals, row, column) => {
+        const diagonalsCopy = [...diagonals];
+        let diagonal = 0;
+        for(diagonal; diagonal < diagonalsCopy.length; diagonal++) {
+            let diagonalItemIndex = 0;
+            for(diagonalItemIndex; diagonalItemIndex < diagonalsCopy[diagonal].length; diagonalItemIndex++) {
+                const diagonalKeys = Object.keys(diagonalsCopy[diagonal][diagonalItemIndex]);
+                const index = diagonalKeys.indexOf(`row${row}column${column}`);
+                if (index > -1) {
+                    diagonalsCopy[diagonal][diagonalItemIndex][`row${row}column${column}`] = player ? 'P' : 'A';
+                    break;
+                }
+            }
         }
+    }, [player]);
+
+    // adding token into choosen column
+    const addToken = useCallback((column) => {
         const columnsGridCopy = [...columnsGrid];
         const rowsGridCopy = [...rowsGrid];
+        const diagonalsBLTRGridCopy = [...diagonalsBLTRGrid];
+        const diagonalsBRTLGridCopy = [...diagonalsBRTLGrid];
+
+        let row = 0;
+        for(row; row < columnsGrid.length; row++) {
+            if(columnsGrid[column][row][`row${row}column${column}`] === '#') {
+                break;
+            }
+        }
     
-        if (columnsGridCopy.length - 1 <= index) {
-    
-            // P - player, A - "artificial inteligence
-            columnsGridCopy[column][`row${index}column${column}`] = player ? 'P' : 'A';
-            rowsGridCopy[index][`row${column}column${index}`] = player ? 'P' : 'A';
+        if (columnsGridCopy.length - 1 >= row) {
+            // P - player, A - "artificial inteligence"
+            // updating columns array
+            columnsGridCopy[column][row][`row${row}column${column}`] = player ? 'P' : 'A';
             setColumnsGrid(columnsGridCopy);
+
+            // updating rows array
+            rowsGridCopy[row][column][`row${row}column${column}`] = player ? 'P' : 'A';
             setRowsGrid(rowsGridCopy);
+
+            updateDiagonalArr(diagonalsBLTRGridCopy, row, column);
+            setDiagonalsBLTR(diagonalsBLTRGridCopy);
+
+            updateDiagonalArr(diagonalsBRTLGridCopy, row, column);
+            setDiagonalsBRTL(diagonalsBRTLGridCopy);
+
             setPlayer(!player);
         }
-    }, [columnsGrid, player, rowsGrid]);
+    }, [columnsGrid, diagonalsBLTRGrid, diagonalsBRTLGrid, player, rowsGrid, updateDiagonalArr]);
 
     function generateInputTockenButtons(columns) {
         const buttonsArr = [];
@@ -133,6 +165,9 @@ export function FourInLineGrid() {
         function scanRows() {
             const columnsGridCopy = [...columnsGrid];
             const rowsGridCopy = [...rowsGrid];
+            const diagonalsBLTRGridCopy = [...diagonalsBLTRGrid];
+            const diagonalsBRTLGridCopy = [...diagonalsBRTLGrid];
+
             rowsGrid.every((row) => {
                 const arrTokens = Object.values(row);
                 let result = false;
@@ -142,12 +177,19 @@ export function FourInLineGrid() {
                     if (result) {
                         const lineIndex = arrTokens.indexOf(fourInLine);
                         const emptyIndex = lineIndex.indexOf("#");
-                        columnsGridCopy[lineIndex + emptyIndex][`row${index}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                        rowsGridCopy[index][`row${index}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                        scanDiagonalsGrid("BLTR", numColumns);
-                        scanDiagonalsGrid("BRTL", numColumns);
-                        setRowsGrid(rowsGridCopy);
+                        const column = lineIndex + emptyIndex;
+                        columnsGridCopy[column][emptyIndex][`row${index}column${column}`] = player ? 'P' : 'A';
                         setColumnsGrid(columnsGridCopy);
+
+                        rowsGridCopy[index][column][`row${index}column${column}`] = player ? 'P' : 'A';
+                        setRowsGrid(rowsGridCopy);
+
+                        updateDiagonalArr(diagonalsBLTRGridCopy, row, column);
+                        setDiagonalsBLTR(diagonalsBLTRGridCopy);
+
+                        updateDiagonalArr(diagonalsBRTLGridCopy, row, column);
+                        setDiagonalsBRTL(diagonalsBRTLGridCopy);
+
                         setPlayer(true);
                         return false
                     }
@@ -163,21 +205,29 @@ export function FourInLineGrid() {
         function scanColumns() {
             const columnsGridCopy = [...columnsGrid];
             const rowsGridCopy = [...rowsGrid];
+            const diagonalsBLTRGridCopy = [...diagonalsBLTRGrid];
+            const diagonalsBRTLGridCopy = [...diagonalsBRTLGrid];
+
             let column = 0;
             let result = false;
             for(column; column < columnsGrid.length; column++) {
                 const arrTokens = Object.values(columnsGrid[column]);
-                // first scenario xxx.
                 result = arrTokens.includes("#PPP");
                 if (result) {
                     const lineIndex = arrTokens.indexOf("#PPP");
                     const emptyIndex = lineIndex.indexOf("#");
                     columnsGridCopy[column][`row${emptyIndex}column${column}`] = player ? 'P' : 'A';
-                    rowsGridCopy[emptyIndex][`row${emptyIndex}column${column}`] = player ? 'P' : 'A';
-                    // scanDiagonalsGrid("BLTR", numColumns);
-                    // scanDiagonalsGrid("BRTL", numColumns);
-                    setRowsGrid(rowsGridCopy);
                     setColumnsGrid(columnsGridCopy);
+
+                    rowsGridCopy[emptyIndex][`row${emptyIndex}column${column}`] = player ? 'P' : 'A';
+                    setRowsGrid(rowsGridCopy);
+
+                    updateDiagonalArr(diagonalsBLTRGridCopy, emptyIndex, column);
+                    setDiagonalsBLTR(diagonalsBLTRGridCopy);
+
+                    updateDiagonalArr(diagonalsBRTLGridCopy, emptyIndex, column);
+                    setDiagonalsBRTL(diagonalsBRTLGridCopy);
+
                     setPlayer(true);
                     return false;
                 }
@@ -197,6 +247,7 @@ export function FourInLineGrid() {
                 diagonalIndex < diagonals.length;
                 diagonalIndex++
             ) {
+                console.log('diagonals[diagonalIndex]', diagonals[diagonalIndex]);
                 const arrTokens = Object.values(diagonals[diagonalIndex]);
                 let result = false;
     
@@ -208,22 +259,30 @@ export function FourInLineGrid() {
                         const emptyIndex = lineIndex.indexOf("#");
     
                         if (direction === "BLTR") {
-                            diagonalsCopy[index][`row${index - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                            rowsGridCopy[index - lineIndex - emptyIndex][`row${index - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                            columnsGridCopy[lineIndex + emptyIndex][`row${index - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
+                            const row = index - lineIndex - emptyIndex;
+                            const column = lineIndex + emptyIndex;
+                            diagonalsCopy[diagonalIndex][emptyIndex][`row${row}column${column}`] = player ? 'P' : 'A';
                             setDiagonalsBLTR(diagonalsCopy);
-                            setColumnsGrid(columnsGridCopy);
+
+                            rowsGridCopy[row][column][`row${row}column${column}`] = player ? 'P' : 'A';
                             setRowsGrid(rowsGridCopy);
+
+                            columnsGridCopy[column][row][`row${row}column${column}`] = player ? 'P' : 'A';
+                            setColumnsGrid(columnsGridCopy);
+
                             setPlayer(true);
                             return false;
                         }
                         if (direction === "BRTL") {
-                            diagonalsCopy[index][`row${numColumns - 1 - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
-                            rowsGridCopy[numColumns - 1 - lineIndex - emptyIndex][`row${numColumns - 1 - lineIndex - emptyIndex}column${index - lineIndex - emptyIndex}`] = player ? 'P' : 'A';
-                            columnsGridCopy[index - lineIndex - emptyIndex][`row${index - lineIndex - emptyIndex}column${index - lineIndex - emptyIndex}`] = player ? 'P' : 'A';
+                            diagonalsCopy[diagonalIndex][emptyIndex][`row${numColumns - 1 - lineIndex - emptyIndex}column${lineIndex + emptyIndex}`] = player ? 'P' : 'A';
                             setDiagonalsBRTL(diagonalsCopy);
-                            setColumnsGrid(columnsGridCopy);
+
+                            rowsGridCopy[numColumns - 1 - lineIndex - emptyIndex][index - lineIndex - emptyIndex][`row${numColumns - 1 - lineIndex - emptyIndex}column${index - lineIndex - emptyIndex}`] = player ? 'P' : 'A';
                             setRowsGrid(rowsGridCopy);
+
+                            columnsGridCopy[index - lineIndex - emptyIndex][index - lineIndex - emptyIndex][`row${index - lineIndex - emptyIndex}column${index - lineIndex - emptyIndex}`] = player ? 'P' : 'A';
+                            setColumnsGrid(columnsGridCopy);
+
                             setPlayer(true);
                             return false;  
                         }
@@ -263,9 +322,7 @@ export function FourInLineGrid() {
                 addToken(getRandomInt());
             }
         }
-    }, [addToken, columnsGrid, diagonalsBLTRGrid, diagonalsBRTLGrid, numColumns, player, rowsGrid])
-
-    console.log('test');
+    }, [addToken, columnsGrid, diagonalsBLTRGrid, diagonalsBRTLGrid, numColumns, player, rowsGrid, updateDiagonalArr])
 
     return (
         <div className='game-display-container'>
