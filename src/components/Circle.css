@@ -1,13 +1,17 @@
 .circle-container {
-    display: grid;
-    width: 80px;
-    height: 80px;
-    background-color:green;
+    position: relative;
+    width: 100px;                   /* the div size */
+    height: 100px;                  /* the div size */
+    overflow: hidden;
+    z-index: 1;               /* hide the excess of the mask border */
 }
 
 .circle {
-    width: 80%;
-    height: 80%;
-    background-color: gray;
-    border-radius: 70px;
+  width: 80%;
+  height: 80%;
+  background-color: #80808000;
+  border-radius: 50%;
+  border: 50px solid blue;
+  margin: -40px;
+  z-index: 1;
 }

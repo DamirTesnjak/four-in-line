@@ -64,9 +64,46 @@ function generateDisplayGrid(rows, columns) {
     )
 }
 
+function createToken(row, column, player) {
+    const newTokenContainer = document.createElement("div");
+        newTokenContainer.id = `playerTokenContainer${row}Column${column}`;
+        newTokenContainer.style.position = "absolute";
+        newTokenContainer.style.width = "100px";                   /* the div size */
+        newTokenContainer.style.height = "100px";
+        newTokenContainer.style.top = `${6 * 100 + 23}px`;
+        newTokenContainer.style.left = `${column * 100}px`;                  /* the div size */
+        newTokenContainer.style.overflow = "hidden";
+        newTokenContainer.style.zIndex = 0;
+        
+        const gameDisplayContainer = document.getElementById("gameDisplayContainer");
+        gameDisplayContainer.appendChild(newTokenContainer);
+
+        // create player or AI token
+        const newToken = document.createElement("div");
+        newToken.id = `playerTokenRow${row}Column${column}`;
+        newToken.style.width = '80px';
+        newToken.style.height = '80px';
+        newToken.style.backgroundColor = player ? "red" : "yellow";
+        newToken.style.borderRadius = '50%';
+        newToken.style.border = "50px solid white";
+        newToken.style.margin = "-40px";
+        newToken.style.zIndex = 0;
+
+        const playerTokenContainer = document.getElementById(`playerTokenContainer${row}Column${column}`);
+        playerTokenContainer.appendChild(newToken);
+
+        console.log(`row${row}column${column}`)
+        setTimeout(() => {
+            newTokenContainer.style.visibility = "visible";
+            newTokenContainer.style.top = `${row * 100 + 23}px`;
+            newTokenContainer.style.left = `${column * 100}px`;
+        }, 1000);
+
+}
+
 export function FourInLineGrid() {
-    const [numRows, setNumRow] = useState(4);
-    const [numColumns, setNumColumns] = useState(4);
+    const [numRows, setNumRow] = useState(6);
+    const [numColumns, setNumColumns] = useState(7);
     const [player, setPlayer] = useState(false);
 
     const rowArr = generateRowsArr(numRows, numColumns);
@@ -125,6 +162,9 @@ export function FourInLineGrid() {
             updateDiagonalArr(diagonalsBRTLGridCopy, row, column);
             setDiagonalsBRTL(diagonalsBRTLGridCopy);
 
+            createToken(row, column, player);
+            console.log('player', player)
+
             setPlayer(!player);
         }
     }, [columnsGrid, diagonalsBLTRGrid, diagonalsBRTLGrid, player, rowsGrid, updateDiagonalArr]);
@@ -154,6 +194,17 @@ export function FourInLineGrid() {
             </div>
         )
     }
+
+    useEffect(() => {
+        function getRandomInt() {
+            return Math.floor(Math.random() * 2);
+        }
+        if (getRandomInt() === 0) {
+            setPlayer(false);
+        } else {
+            setPlayer(true);
+        }
+    }, [])
 
     useEffect(() => {
         const playerFourInLines = ["PPP#", "PP#P", "P#PP", "#PPP"];
@@ -189,6 +240,8 @@ export function FourInLineGrid() {
 
                         updateDiagonalArr(diagonalsBRTLGridCopy, row, column);
                         setDiagonalsBRTL(diagonalsBRTLGridCopy);
+
+                        createToken(index, column, player);
 
                         setPlayer(true);
                         return false
@@ -228,6 +281,8 @@ export function FourInLineGrid() {
                     updateDiagonalArr(diagonalsBRTLGridCopy, emptyIndex, column);
                     setDiagonalsBRTL(diagonalsBRTLGridCopy);
 
+                    createToken(emptyIndex, column, player);
+
                     setPlayer(true);
                     return false;
                 }
@@ -247,7 +302,6 @@ export function FourInLineGrid() {
                 diagonalIndex < diagonals.length;
                 diagonalIndex++
             ) {
-                console.log('diagonals[diagonalIndex]', diagonals[diagonalIndex]);
                 const arrTokens = Object.values(diagonals[diagonalIndex]);
                 let result = false;
     
@@ -270,6 +324,8 @@ export function FourInLineGrid() {
                             columnsGridCopy[column][row][`row${row}column${column}`] = player ? 'P' : 'A';
                             setColumnsGrid(columnsGridCopy);
 
+                            createToken(row, column, player);
+
                             setPlayer(true);
                             return false;
                         }
@@ -283,6 +339,8 @@ export function FourInLineGrid() {
                             columnsGridCopy[index - lineIndex - emptyIndex][index - lineIndex - emptyIndex][`row${index - lineIndex - emptyIndex}column${index - lineIndex - emptyIndex}`] = player ? 'P' : 'A';
                             setColumnsGrid(columnsGridCopy);
 
+                            createToken(numColumns - 1 - lineIndex - emptyIndex, lineIndex + emptyIndex, player);
+
                             setPlayer(true);
                             return false;  
                         }
@@ -293,7 +351,6 @@ export function FourInLineGrid() {
                     setPlayer(true);
                     return false;
                 }
-                return true
             }
             setPlayer(true);
         }
@@ -319,13 +376,18 @@ export function FourInLineGrid() {
             }
             if(!search) {
                 console.log('search4', search);
-                addToken(getRandomInt());
+                setTimeout(() => {
+                    addToken(getRandomInt());
+                }, 2000);
             }
         }
     }, [addToken, columnsGrid, diagonalsBLTRGrid, diagonalsBRTLGrid, numColumns, player, rowsGrid, updateDiagonalArr])
 
     return (
-        <div className='game-display-container'>
+        <div 
+            id="gameDisplayContainer" 
+            className='game-display-container'
+        >
             {generateInputTockenButtons(numColumns)}
             {generateDisplayGrid(numRows, numColumns)}
         </div>
