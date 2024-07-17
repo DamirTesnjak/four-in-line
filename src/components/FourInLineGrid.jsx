@@ -150,6 +150,7 @@ export function FourInLineGrid() {
             // P - player, A - "artificial inteligence"
             // updating columns array
             columnsGridCopy[column][row][`row${row}column${column}`] = player ? 'P' : 'A';
+            console.log('columnsGridCopy', columnsGridCopy);
             setColumnsGrid(columnsGridCopy);
 
             // updating rows array
@@ -244,7 +245,9 @@ export function FourInLineGrid() {
                         updateDiagonalArr(diagonalsBRTLGridCopy, row, column);
                         setDiagonalsBRTL(diagonalsBRTLGridCopy);
 
-                        createToken(rowIndex, column, player);
+                        setTimeout(() => {
+                            createToken(rowIndex, column, player);
+                        }, 2000);
 
                         setPlayer(true);
                         return false
@@ -267,16 +270,13 @@ export function FourInLineGrid() {
                     .map((token) => Object.values(token)[0])
                     .join("");
 
-                console.log('arrTokens', arrTokens);
                 
-                const substring = player ? "PPP#" : "AAA#";
-
-                console.log("arrTokens.includes(substring)", arrTokens.includes(substring));
-
+                const substring = "PPP#";
                 if (arrTokens.includes(substring)) {
                     const lineIndex = arrTokens.indexOf(substring);
                     const emptyIndex = substring.indexOf("#");
                     columnsGridCopy[column][emptyIndex + lineIndex][`row${emptyIndex + lineIndex}column${column}`] = player ? 'P' : 'A';
+                    console.log('columnsGridCopy', columnsGridCopy);
                     setColumnsGrid(columnsGridCopy);
 
                     rowsGridCopy[emptyIndex + lineIndex][column][`row${emptyIndex + lineIndex}column${column}`] = player ? 'P' : 'A';
@@ -288,9 +288,8 @@ export function FourInLineGrid() {
                     updateDiagonalArr(diagonalsBRTLGridCopy, emptyIndex, column);
                     setDiagonalsBRTL(diagonalsBRTLGridCopy);
 
-                    createToken(emptyIndex, column, player);
+                    createToken(emptyIndex + lineIndex, column, player);
 
-                    setPlayer(true);
                     return true;
                 }
             }
