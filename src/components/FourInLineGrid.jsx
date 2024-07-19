@@ -5,6 +5,7 @@ import { generateRowsArr } from "../utils/generateRowsArr";
 import { generateColumnsArr } from "../utils/generateColumnsArr";
 import { generateDiagonalsArr } from "../utils/generateDiagonalsArr";
 import { createToken } from '../utils/createToken';
+import { scanDiagonalsGrid } from '../utils/scanDiagonalsGrid';
 
 import "./Row.css";
 
@@ -229,77 +230,6 @@ export function FourInLineGrid() {
             }
         }
 
-        function scanDiagonalsGrid(direction, scanOwnTokens) {
-            const diagonals = direction === "BLTR" ? diagonalsBLTRGrid : diagonalsBRTLGrid;
-            const diagonalsCopy = [...diagonals];
-            const columnsGridCopy = [...columnsGrid];
-            const rowsGridCopy = [...rowsGrid];
-            let diagonalIndex = 0;
-            for (
-                diagonalIndex;
-                diagonalIndex < diagonals.length;
-                diagonalIndex++
-            ) {
-                const arrTokens = Object.values(diagonals[diagonalIndex])
-                    .map((token) => Object.values(token)[0])
-                    .join("");
-
-                // eslint-disable-next-line no-loop-func
-                const lines = !scanOwnTokens ? playerFourInLines : aIFourInLines;
-                console.log('lines', lines);
-                // eslint-disable-next-line no-loop-func
-
-                let index = 0;
-                for(index; index < lines.length; index++) {
-                    const fourInLine = lines[index];
-                    if (arrTokens.includes(fourInLine)) {
-                        const lineIndex = arrTokens.split('')
-                            .reverse()
-                            .indexOf("#");
-
-                        const targetDiagonal = diagonalsCopy[diagonalIndex].reverse();
-                        const diagonalItem = targetDiagonal[lineIndex];
-                        const diagonalItemKey = Object.keys(diagonalItem)[0];
-
-                        const diagonalItemCoordinates = diagonalItemKey.replace("row", "")
-                            .replace("column", ",")
-                            .split(",");
-                        
-                        const rowIndexFromDiagonal = Number(diagonalItemCoordinates[0]);
-                        const columnIndexFromDiagonal = Number(diagonalItemCoordinates[1]);
-
-
-                        let columnIndex = 0;
-                        for (columnIndex; columnIndex < rowIndexFromDiagonal; columnIndex++) {
-                            if(columnsGridCopy[columnIndexFromDiagonal][columnIndex][`row${columnIndex}column${columnIndexFromDiagonal}`] === "#") {
-                                rowsGridCopy[columnIndex][columnIndexFromDiagonal][`row${columnIndex}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
-                                setRowsGrid(rowsGridCopy);
-
-                                columnsGridCopy[columnIndexFromDiagonal][columnIndex][`row${columnIndex}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
-                                setColumnsGrid(columnsGridCopy);
-                                createToken(columnIndex, columnIndexFromDiagonal, player);
-                                setPlayer(true);
-                                return true;
-                            }
-                        }
-                        diagonalsCopy[diagonalIndex][lineIndex][`row${rowIndexFromDiagonal}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
-                        setDiagonalsBLTR(diagonalsCopy);
-
-                        rowsGridCopy[rowIndexFromDiagonal][columnIndexFromDiagonal][`row${rowIndexFromDiagonal}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
-                        setRowsGrid(rowsGridCopy);
-
-                        columnsGridCopy[columnIndexFromDiagonal][rowIndexFromDiagonal][`row${rowIndexFromDiagonal}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
-                        setColumnsGrid(columnsGridCopy);
-                        createToken(rowIndexFromDiagonal, columnIndexFromDiagonal, player);
-                        setPlayer(true);
-                        return true;
-                    }
-                }
-                // return true;
-            }
-            return true;
-        }
-
         function checkGridForWinner() {
             const lines = [
                 ...rowsGrid,
@@ -326,8 +256,26 @@ export function FourInLineGrid() {
         let search = true;
 
         if (!player) {
+            const scanDiagonalsArgs = {
+                diagonalsBLTRGrid,
+                diagonalsBRTLGrid,
+                columnsGrid,
+                rowsGrid,
+                playerFourInLines,
+                aIFourInLines,
+                setRowsGrid,
+                setColumnsGrid,
+                setDiagonalsBLTR,
+                createToken,
+                setPlayer,
+                player,
+            }
             if (search) {
-                search = scanDiagonalsGrid("BLTR", false);
+                search = scanDiagonalsGrid({
+                    direction: "BLTR",
+                    scanOwnTokens: false,
+                    ...scanDiagonalsArgs,
+                });
                 //search = scanDiagonalsGrid("BLTR", true);
                 console.log('search0', search);
             }
