@@ -4,7 +4,7 @@ export function createToken(row, column, player) {
     newTokenContainer.style.position = "absolute";
     newTokenContainer.style.width = "100px";                   /* the div size */
     newTokenContainer.style.height = "100px";
-    newTokenContainer.style.top = `${6 * 100 + 23}px`;
+    newTokenContainer.style.top = `${23}px`;
     newTokenContainer.style.left = `${column * 100}px`;                  /* the div size */
     newTokenContainer.style.overflow = "hidden";
     newTokenContainer.style.zIndex = 0;
@@ -28,7 +28,7 @@ export function createToken(row, column, player) {
 
     setTimeout(() => {
         newTokenContainer.style.visibility = "visible";
-        newTokenContainer.style.top = `${row * 100 + 23}px`;
+        newTokenContainer.style.top = `${(6 - row) * 100 + 23}px`;
         newTokenContainer.style.left = `${column * 100}px`;
     }, 1000);
 

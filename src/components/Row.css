@@ -1,5 +1,6 @@
 .game-grid {
     position: absolute;
+    top: 123px;
     z-index: 1;
 }
 

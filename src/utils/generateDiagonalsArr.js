@@ -1,3 +1,6 @@
+// generates "empty" diagonal array of game grid.
+// # - empty slot/position
+
 export function generateDiagonalsArr(rows, columns, direction) {
     const diagonals = [];
     const numOfDialogs = columns + (columns - 1);

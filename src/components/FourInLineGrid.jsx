@@ -1,4 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 
 import { Circle } from './Circle';
 import { generateRowsArr } from "../utils/generateRowsArr";
@@ -6,11 +10,16 @@ import { generateColumnsArr } from "../utils/generateColumnsArr";
 import { generateDiagonalsArr } from "../utils/generateDiagonalsArr";
 import { createToken } from '../utils/createToken';
 import { scanDiagonalsGrid } from '../utils/scanDiagonalsGrid';
+import { scanRows } from '../utils/scanRows';
+import { scanColumns } from '../utils/scanColumns';
+import { addToken } from '../utils/addToken';
+import { updateDiagonalArr } from '../utils/updateDiagonalArr';
 
 import "./Row.css";
 
 function generateDisplayGrid(rows, columns) {
-    const rowArr = generateRowsArr(rows, columns);
+    const rowArr = generateRowsArr(rows, columns)
+        .reverse();
     return (
         <div className="game-grid">
             {
@@ -40,9 +49,11 @@ function generateDisplayGrid(rows, columns) {
 }
 
 export function FourInLineGrid() {
-    const [numRows, setNumRow] = useState(6);
-    const [numColumns, setNumColumns] = useState(7);
+    const numRows = 6;
+    const numColumns = 7;
     const [player, setPlayer] = useState(false);
+    const [gameStopped, stopGame] = useState(false);
+    const [randomizeStartPlayer, setRandomizeStartPlaxer] = useState(false);
 
     const rowArr = generateRowsArr(numRows, numColumns);
     const columnsArr = generateColumnsArr(numRows, numColumns);
@@ -54,57 +65,37 @@ export function FourInLineGrid() {
     const [diagonalsBLTRGrid, setDiagonalsBLTR] = useState(diagonalsBLTR);
     const [diagonalsBRTLGrid, setDiagonalsBRTL] = useState(diagonalsBRTL);
 
-    const updateDiagonalArr = useCallback((diagonals, row, column) => {
-        const diagonalsCopy = [...diagonals];
-        let diagonal = 0;
-        for (diagonal; diagonal < diagonalsCopy.length; diagonal++) {
-            let diagonalItemIndex = 0;
-            for (diagonalItemIndex; diagonalItemIndex < diagonalsCopy[diagonal].length; diagonalItemIndex++) {
-                const diagonalKeys = Object.keys(diagonalsCopy[diagonal][diagonalItemIndex]);
-                const index = diagonalKeys.indexOf(`row${row}column${column}`);
-                if (index > -1) {
-                    diagonalsCopy[diagonal][diagonalItemIndex][`row${row}column${column}`] = player ? 'P' : 'A';
-                    break;
-                }
-            }
-        }
-    }, [player]);
+    const playerFourInLines = useMemo(() => ["PPP#", "PP#P", "P#PP", "#PPP"], []);
+    const aIFourInLines = useMemo(() => ["AAA#", "AA#A", "A#AA", "#AAA"], []);
 
-    // adding token into choosen column
-    const addToken = useCallback((column) => {
-        const columnsGridCopy = [...columnsGrid];
-        const rowsGridCopy = [...rowsGrid];
-        const diagonalsBLTRGridCopy = [...diagonalsBLTRGrid];
-        const diagonalsBRTLGridCopy = [...diagonalsBRTLGrid];
-
-        let row = 0;
-        for (row; row < columnsGrid.length; row++) {
-            if (columnsGrid[column][row] && columnsGrid[column][row][`row${row}column${column}`] === '#') {
-                break;
-            }
-        }
-
-        if (columnsGridCopy.length - 1 >= row) {
-            // P - player, A - "artificial inteligence"
-            // updating columns array
-            columnsGridCopy[column][row][`row${row}column${column}`] = player ? 'P' : 'A';
-            setColumnsGrid(columnsGridCopy);
-
-            // updating rows array
-            rowsGridCopy[row][column][`row${row}column${column}`] = player ? 'P' : 'A';
-            setRowsGrid(rowsGridCopy);
-
-            updateDiagonalArr(diagonalsBLTRGridCopy, row, column);
-            setDiagonalsBLTR(diagonalsBLTRGridCopy);
-
-            updateDiagonalArr(diagonalsBRTLGridCopy, row, column);
-            setDiagonalsBRTL(diagonalsBRTLGridCopy);
-
-            createToken(row, column, player);
-
-            setPlayer(!player);
-        }
-    }, [columnsGrid, diagonalsBLTRGrid, diagonalsBRTLGrid, player, rowsGrid, updateDiagonalArr]);
+    const args = useMemo(() => ({
+        diagonalsBLTRGrid,
+        diagonalsBRTLGrid,
+        columnsGrid,
+        rowsGrid,
+        playerFourInLines,
+        aIFourInLines,
+        setRowsGrid,
+        setColumnsGrid,
+        setDiagonalsBLTR,
+        createToken,
+        setPlayer,
+        player,
+        updateDiagonalArr,
+        setDiagonalsBRTL,
+        stopGame,
+        gameStopped,
+    }), [
+        aIFourInLines,
+        columnsGrid,
+        diagonalsBLTRGrid,
+        diagonalsBRTLGrid,
+        player,
+        playerFourInLines,
+        rowsGrid,
+        stopGame,
+        gameStopped,
+    ]);
 
     function generateInputTockenButtons(columns) {
         const buttonsArr = [];
@@ -121,7 +112,10 @@ export function FourInLineGrid() {
                                 id={button}
                                 key={button}
                                 className='button-input'
-                                onClick={() => addToken(index)}
+                                onClick={() => addToken({
+                                    column: index,
+                                    ...args,
+                                })}
                             >
                                 {`Column ${index}`}
                             </button>
@@ -132,6 +126,8 @@ export function FourInLineGrid() {
         )
     }
 
+    console.log('gameStopped', gameStopped);
+
     useEffect(() => {
         function getRandomInt() {
             return Math.floor(Math.random() * 2);
@@ -141,167 +137,88 @@ export function FourInLineGrid() {
         } else {
             setPlayer(true);
         }
+        setRandomizeStartPlaxer(true);
     }, [])
 
     useEffect(() => {
-        const playerFourInLines = ["PPP#", "PP#P", "P#PP", "#PPP"];
-        const aIFourInLines = ["AAA#", "AA#A", "A#AA", "#AAA"];
+        if (randomizeStartPlayer) {
 
-        function getRandomInt() {
-            return Math.floor(Math.random() * (numColumns));
-        }
-
-        function scanRows(scanOwnTokens) {
-            const columnsGridCopy = [...columnsGrid];
-            const rowsGridCopy = [...rowsGrid];
-            const diagonalsBLTRGridCopy = [...diagonalsBLTRGrid];
-            const diagonalsBRTLGridCopy = [...diagonalsBRTLGrid];
-
-            rowsGrid.every((row, rowIndex) => {
-                const arrTokens = Object.values(row)
-                    .map((token) => Object.values(token)[0])
-                    .join("");
-
-                // eslint-disable-next-line no-loop-func
-                const lines = !scanOwnTokens ? playerFourInLines : aIFourInLines;
-
-                let index = 0;
-                for(index; index < lines.length; index++) {
-                    const fourInLine = lines[index];
-
-                    if (arrTokens.includes(fourInLine)) {
-                        const lineIndex = arrTokens.indexOf(fourInLine);
-                        const emptyIndex = fourInLine.indexOf("#");
-                        const column = lineIndex + emptyIndex;
-                        columnsGridCopy[column][emptyIndex][`row${index}column${column}`] = !scanOwnTokens ? 'P' : 'A';
-                        setColumnsGrid(columnsGridCopy);
-
-                        rowsGridCopy[rowIndex][column][`row${rowIndex}column${column}`] = !scanOwnTokens ? 'P' : 'A';
-                        setRowsGrid(rowsGridCopy);
-
-                        updateDiagonalArr(diagonalsBLTRGridCopy, row, column);
-                        setDiagonalsBLTR(diagonalsBLTRGridCopy);
-
-                        updateDiagonalArr(diagonalsBRTLGridCopy, row, column);
-                        setDiagonalsBRTL(diagonalsBRTLGridCopy);
-
-                        setPlayer(true);
-                        return false
+            function getRandomInt() {
+                return Math.floor(Math.random() * (numColumns));
+            }
+            if (!player && !gameStopped) {
+                try {
+                    scanDiagonalsGrid({
+                        direction: "BLTR",
+                        scanOwnTokens: false,
+                        ...args,
+                    });
+                    scanDiagonalsGrid({
+                        direction: "BLTR",
+                        scanOwnTokens: true,
+                        ...args,
+                    });
+                    scanDiagonalsGrid({
+                        direction: "BRTL",
+                        scanOwnTokens: false,
+                        ...args,
+                    });
+                    scanDiagonalsGrid({
+                        direction: "BRTL",
+                        scanOwnTokens: true,
+                        ...args,
+                    });
+                    scanColumns({
+                        scanOwnTokens: false,
+                        ...args,
+                    });
+                    scanColumns({
+                        scanOwnTokens: true,
+                        ...args,
+                    });
+                    scanRows({
+                        scanOwnTokens: false,
+                        ...args,
+                    });
+                    scanRows({
+                        scanOwnTokens: true,
+                        ...args,
+                    });
+                    setTimeout(() => {
+                        addToken({
+                            column: getRandomInt(),
+                            ...args,
+                        });
+                    }, 2000);
+                } catch (e) {
+                    console.log('e', e);
+                    if (e === "line found" && e !== "AI wins!" && e !== "Player wins!") {
+                        setTimeout(() => {
+                            addToken({
+                                column: getRandomInt(),
+                                ...args,
+                            });
+                        }, 2000);
                     }
-                    return true;
-                }
-                return true;
-            })
-        }
-
-        function scanColumns(scanOwnTokens) {
-            const columnsGridCopy = [...columnsGrid];
-            const rowsGridCopy = [...rowsGrid];
-            const diagonalsBLTRGridCopy = [...diagonalsBLTRGrid];
-            const diagonalsBRTLGridCopy = [...diagonalsBRTLGrid];
-
-            let column = 0;
-            for (column; column < columnsGrid.length; column++) {
-                const arrTokens = Object.values(columnsGrid[column])
-                    .map((token) => Object.values(token)[0])
-                    .join("");
-
-                
-                const substring = !scanOwnTokens ? "PPP#" : "AAA#";
-                if (arrTokens.includes(substring)) {
-                    const lineIndex = arrTokens.indexOf(substring);
-                    const emptyIndex = substring.indexOf("#");
-                    columnsGridCopy[column][emptyIndex + lineIndex][`row${emptyIndex + lineIndex}column${column}`] = !scanOwnTokens ? 'P' : 'A';
-                    setColumnsGrid(columnsGridCopy);
-
-                    rowsGridCopy[emptyIndex + lineIndex][column][`row${emptyIndex + lineIndex}column${column}`] = !scanOwnTokens ? 'P' : 'A';
-                    setRowsGrid(rowsGridCopy);
-
-                    updateDiagonalArr(diagonalsBLTRGridCopy, emptyIndex, column);
-                    setDiagonalsBLTR(diagonalsBLTRGridCopy);
-
-                    updateDiagonalArr(diagonalsBRTLGridCopy, emptyIndex, column);
-                    setDiagonalsBRTL(diagonalsBRTLGridCopy);
-
-                    createToken(emptyIndex + lineIndex, column, player);
-
-                    return true;
+                    if (e === "AI wins!" || e === "Player wins!") {
+                        // we use try ... catch method to break chain of functions
+                        // if we find a winner
+                        console.log("Stopping the game! Winner found!");
+                    }
                 }
             }
         }
-
-        function checkGridForWinner() {
-            const lines = [
-                ...rowsGrid,
-                ...columnsGrid,
-                ...diagonalsBLTRGrid,
-                ...diagonalsBRTLGrid,
-            ];
-
-            let line = 0;
-            for(line; line < lines; line++) {
-                const tokens = Object.values(line)
-                    .map((item) => Object.values(item)[0])
-                    .join("");
-                if (player && tokens.includes("PPPP")) {
-                    return "Player wins!"
-                }
-                if (!player && tokens.includes("AAAA")) {
-                    return "AI wins!"
-                }
-            }
-            return "There is no winner!";
-        }
-
-        let search = true;
-
-        if (!player) {
-            const scanDiagonalsArgs = {
-                diagonalsBLTRGrid,
-                diagonalsBRTLGrid,
-                columnsGrid,
-                rowsGrid,
-                playerFourInLines,
-                aIFourInLines,
-                setRowsGrid,
-                setColumnsGrid,
-                setDiagonalsBLTR,
-                createToken,
-                setPlayer,
-                player,
-            }
-            if (search) {
-                search = scanDiagonalsGrid({
-                    direction: "BLTR",
-                    scanOwnTokens: false,
-                    ...scanDiagonalsArgs,
-                });
-                //search = scanDiagonalsGrid("BLTR", true);
-                console.log('search0', search);
-            }
-            if (search) {
-                // search = scanDiagonalsGrid("BRTL", false);
-                // search = scanDiagonalsGrid("BRTL", true);
-
-                // console.log('search1', search);
-            }
-            /*if (search) {
-                search = scanColumns(false);
-                search = scanColumns(true);
-                console.log('search2', search);
-            }
-            if (search) {
-                search = scanRows(false);
-                search = scanRows(true);
-                console.log('search3', search);
-            } */
-            if (search) {
-                setTimeout(() => {
-                    addToken(getRandomInt());
-                }, 2000);
-            }
-        }
-    }, [addToken, columnsGrid, diagonalsBLTRGrid, diagonalsBRTLGrid, numColumns, player, rowsGrid, updateDiagonalArr])
+    }, [
+        args,
+        columnsGrid,
+        diagonalsBLTRGrid,
+        diagonalsBRTLGrid,
+        gameStopped,
+        numColumns,
+        player,
+        randomizeStartPlayer,
+        rowsGrid,
+    ])
 
     return (
         <div

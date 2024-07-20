@@ -1,3 +1,6 @@
+// generates "empty" rows array of game grid.
+// # - empty slot/position
+
 export function generateRowsArr(rows, columns) {
     const rowsArr = [];
     let i = 0;
