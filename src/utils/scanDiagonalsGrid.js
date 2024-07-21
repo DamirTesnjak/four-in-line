@@ -4,12 +4,8 @@
 // and tries to prevent player to win a game, by inserting AI's token
 // or to for AI to win
 
-import { checkGridForWinner } from "./checkGridForWinner";
-
 export function scanDiagonalsGrid(args) {
     const {
-        direction,
-        scanOwnTokens,
         diagonalsBLTRGrid,
         diagonalsBRTLGrid,
         columnsGrid,
@@ -22,84 +18,103 @@ export function scanDiagonalsGrid(args) {
         createToken,
         setPlayer,
         player,
-    } = args
+    } = args;
 
-    const diagonals = direction === "BLTR" ? diagonalsBLTRGrid : diagonalsBRTLGrid;
-    const diagonalsCopy = [...diagonals];
+    const scanningSettings = [
+        {
+            direction: "BLTR", // direction of scanning diagonals, bottom-left-top-right
+        },
+        {
+            direction: "BRTL", // direction of scanning diagonals, bottom-right-top-left
+        },
+    ];
+
     const columnsGridCopy = [...columnsGrid];
     const rowsGridCopy = [...rowsGrid];
-    let diagonalIndex = 0;
 
-    loopDiagonals: // looping trouhgt diagonals
-        for (
-            diagonalIndex;
-            diagonalIndex < diagonals.length;
-            diagonalIndex++
-        ) {
-            const arrTokens = Object.values(diagonals[diagonalIndex])
+    let scanIndex = 0;
+    for (scanIndex; scanIndex < scanningSettings.length; scanIndex++) {
+        const scanSetting = scanningSettings[scanIndex];
+        const direction = scanSetting.direction;
+        const diagonals =
+            direction === "BLTR" ? diagonalsBLTRGrid : diagonalsBRTLGrid;
+        const diagonalsCopy = [...diagonals];
+
+        let dIndex = 0; // diagonal index
+        for (dIndex; dIndex < diagonals.length; dIndex++) {
+            const diagonal = diagonals[dIndex];
+
+            // diagonal's tokens
+            const dTokens = Object.values(diagonal)
                 .map((token) => Object.values(token)[0])
                 .join("");
 
-            const lines = !scanOwnTokens ? playerFourInLines : aIFourInLines;
+            // possible solution before last token for the player win
+            const psltr = [...aIFourInLines, ...playerFourInLines];
 
-            let index = 0;
+            let psltrIndex = 0;
 
-            for(index; index < lines.length; index++) {
-                if(arrTokens.includes(!scanOwnTokens ? 'PPPP' : 'AAAA')) {
-                    checkGridForWinner(args);
-                    break loopDiagonals;
-                }
-
-                const fourInLine = lines[index];
-                // if probable solution is detected, find the 
+            for (psltrIndex; psltrIndex < psltr.length; psltrIndex++) {
+                const psltrItem = psltr[psltrIndex];
+                // if possible solution before last token for the player win
                 // corespond "row" and "column" indexes in a grid
-                if (arrTokens.includes(fourInLine)) {
-                    const lineIndex = arrTokens.split('')
-                        .reverse()
-                        .indexOf("#");
+                if (dTokens.includes(psltrItem)) {
+                    const solutionIndex = dTokens.split("").reverse().indexOf("#");
 
-                    const targetDiagonal = diagonalsCopy[diagonalIndex].reverse();
-                    const diagonalItem = targetDiagonal[lineIndex];
-                    const diagonalItemKey = Object.keys(diagonalItem)[0];
+                    const targetDiagonal = diagonalsCopy[dIndex].reverse();
 
-                    const diagonalItemCoordinates = diagonalItemKey.replace("row", "")
+                    // diagonal in which possible solution exists
+                    const dTarget = targetDiagonal[solutionIndex];
+                    const dTargetKey = Object.keys(dTarget)[0];
+
+                    // row, column game grid coordinates
+                    const dItemCR = dTargetKey
+                        .replace("row", "")
                         .replace("column", ",")
                         .split(",");
-                    
-                    const rowIndexFromDiagonal = Number(diagonalItemCoordinates[0]);
-                    const columnIndexFromDiagonal = Number(diagonalItemCoordinates[1]);
 
+                    const dRow = Number(dItemCR[0]); // row coordinate of diagonal's token
+                    const dColumn = Number(dItemCR[1]); // column coordinate of diagonal's token
 
-                    let columnIndex = 0;
-                    for (columnIndex; columnIndex < rowIndexFromDiagonal; columnIndex++) {
-
+                    let colIndex = 0;
+                    for (colIndex; colIndex < dRow; colIndex++) {
                         //checks if a column is filled up to targeted slot
-                        if(columnsGridCopy[columnIndexFromDiagonal][columnIndex][`row${columnIndex}column${columnIndexFromDiagonal}`] === "#") {
-                            rowsGridCopy[columnIndex][columnIndexFromDiagonal][`row${columnIndex}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
+                        if (
+                            columnsGridCopy[dColumn][colIndex][
+                            `row${colIndex}column${dColumn}`
+                            ] === "#"
+                        ) {
+                            rowsGridCopy[colIndex][dColumn][
+                                `row${colIndex}column${dColumn}`
+                            ] = "A";
                             setRowsGrid(rowsGridCopy);
 
-                            columnsGridCopy[columnIndexFromDiagonal][columnIndex][`row${columnIndex}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
+                            columnsGridCopy[dColumn][colIndex][
+                                `row${colIndex}column${dColumn}`
+                            ] = "A";
                             setColumnsGrid(columnsGridCopy);
-                            createToken(columnIndex, columnIndexFromDiagonal, player);
+                            createToken(colIndex, dColumn, player);
                             setPlayer(true);
                             throw "line found";
                         }
                     }
 
                     // inserting AI token in targeted slot, updating row, columns and diagonals arrays
-                    diagonalsCopy[diagonalIndex][lineIndex][`row${rowIndexFromDiagonal}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
+                    diagonalsCopy[dIndex][solutionIndex][`row${dRow}column${dColumn}`] =
+                        "A";
                     setDiagonalsBLTR(diagonalsCopy);
 
-                    rowsGridCopy[rowIndexFromDiagonal][columnIndexFromDiagonal][`row${rowIndexFromDiagonal}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
+                    rowsGridCopy[dRow][dColumn][`row${dRow}column${dColumn}`] = "A";
                     setRowsGrid(rowsGridCopy);
 
-                    columnsGridCopy[columnIndexFromDiagonal][rowIndexFromDiagonal][`row${rowIndexFromDiagonal}column${columnIndexFromDiagonal}`] = !scanOwnTokens ? 'P' : 'A';
+                    columnsGridCopy[dColumn][dRow][`row${dRow}column${dColumn}`] = "A";
                     setColumnsGrid(columnsGridCopy);
 
-                    createToken(rowIndexFromDiagonal, columnIndexFromDiagonal, player);
+                    createToken(dRow, dColumn, player);
                     setPlayer(true);
                     throw "line found";
                 }
             }
         }
+    }
 }

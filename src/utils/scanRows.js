@@ -4,11 +4,9 @@
 // and tries to prevent player to win a game, by inserting AI's token
 // or to for AI to win
 
-import { checkGridForWinner } from "./checkGridForWinner";
-
+import { createToken } from "./createToken.js";
 export function scanRows(args) {
     const {
-        scanOwnTokens,
         diagonalsBLTRGrid,
         diagonalsBRTLGrid,
         columnsGrid,
@@ -30,44 +28,37 @@ export function scanRows(args) {
     const diagonalsBRTLGridCopy = [...diagonalsBRTLGrid];
 
     let rowIndex = 0;
+    for (rowIndex; rowIndex < rowsGrid.length; rowIndex++) {
+        const rTokens = Object.values(rowsGrid[rowIndex])
+            .map((token) => Object.values(token)[0])
+            .join("");
 
-    loopRows: // loop rows
-        for(rowIndex; rowIndex < rowsGrid.length; rowIndex++) {
-            const arrTokens = Object.values(rowsGrid[rowIndex])
-                .map((token) => Object.values(token)[0])
-                .join("");
+        // eslint-disable-next-line no-loop-func
+        // possible solution before last token for the player win
+        const psltr = [...aIFourInLines, ...playerFourInLines];
 
-            // eslint-disable-next-line no-loop-func
-            const lines = !scanOwnTokens ? playerFourInLines : aIFourInLines;
+        let psltrIndex = 0;
+        for (psltrIndex; psltrIndex < psltr.length; psltrIndex++) {
+            const psltrItem = psltr[psltrIndex];
+            if (rTokens.includes(psltrItem)) {
+                const rIndex = rTokens.indexOf(psltrItem);
+                const solutionIndex = psltrItem.indexOf("#");
+                const column = rIndex + solutionIndex;
+                columnsGridCopy[column][solutionIndex][`row${psltrIndex}column${column}`] = "A";
+                setColumnsGrid(columnsGridCopy);
 
-            let index = 0;
-            for (index; index < lines.length; index++) {
-                if(arrTokens.includes(!scanOwnTokens ? 'PPPP' : 'AAAA')) {
-                    console.log("test");
-                    checkGridForWinner(args);
-                    break loopRows;
-                }
+                rowsGridCopy[rowIndex][column][`row${rowIndex}column${column}`] = "A";
+                setRowsGrid(rowsGridCopy);
 
-                const fourInLine = lines[index];
-                if (arrTokens.includes(fourInLine)) {
-                    const lineIndex = arrTokens.indexOf(fourInLine);
-                    const emptyIndex = fourInLine.indexOf("#");
-                    const column = lineIndex + emptyIndex;
-                    columnsGridCopy[column][emptyIndex][`row${index}column${column}`] =
-                        !scanOwnTokens ? "P" : "A";
-                    setColumnsGrid(columnsGridCopy);
-
-                    rowsGridCopy[rowIndex][column][`row${rowIndex}column${column}`] =
-                        !scanOwnTokens ? "P" : "A";
-                    setRowsGrid(rowsGridCopy);
-
-                    updateDiagonalArr(diagonalsBLTRGridCopy, rowIndex, column, player);
-                    setDiagonalsBLTR(diagonalsBLTRGridCopy);
-                    updateDiagonalArr(diagonalsBRTLGridCopy, rowIndex, column, player);
-                    setDiagonalsBRTL(diagonalsBRTLGridCopy);
-                    setPlayer(true);
-                    throw "line found";
-                }
+                updateDiagonalArr(diagonalsBLTRGridCopy, rowIndex, column, player);
+                setDiagonalsBLTR(diagonalsBLTRGridCopy);
+                updateDiagonalArr(diagonalsBRTLGridCopy, rowIndex, column, player);
+                setDiagonalsBRTL(diagonalsBRTLGridCopy);
+                createToken(rowIndex, column, player);
+                setPlayer(true);
+                throw "line found";
             }
-        };
+        }
+    };
+
 }

@@ -14,6 +14,7 @@ import { scanRows } from '../utils/scanRows';
 import { scanColumns } from '../utils/scanColumns';
 import { addToken } from '../utils/addToken';
 import { updateDiagonalArr } from '../utils/updateDiagonalArr';
+import { checkGridForWinner } from "../utils/checkGridForWinner";
 
 import "./Row.css";
 
@@ -52,8 +53,8 @@ export function FourInLineGrid() {
     const numRows = 6;
     const numColumns = 7;
     const [player, setPlayer] = useState(false);
-    const [gameStopped, stopGame] = useState(false);
     const [randomizeStartPlayer, setRandomizeStartPlaxer] = useState(false);
+    const [endgameMessage, setEndgameMessage] = useState('');
 
     const rowArr = generateRowsArr(numRows, numColumns);
     const columnsArr = generateColumnsArr(numRows, numColumns);
@@ -83,8 +84,7 @@ export function FourInLineGrid() {
         player,
         updateDiagonalArr,
         setDiagonalsBRTL,
-        stopGame,
-        gameStopped,
+        setEndgameMessage,
     }), [
         aIFourInLines,
         columnsGrid,
@@ -93,8 +93,7 @@ export function FourInLineGrid() {
         player,
         playerFourInLines,
         rowsGrid,
-        stopGame,
-        gameStopped,
+        setEndgameMessage,
     ]);
 
     function generateInputTockenButtons(columns) {
@@ -112,6 +111,7 @@ export function FourInLineGrid() {
                                 id={button}
                                 key={button}
                                 className='button-input'
+                                disabled={!player}
                                 onClick={() => addToken({
                                     column: index,
                                     ...args,
@@ -125,8 +125,6 @@ export function FourInLineGrid() {
             </div>
         )
     }
-
-    console.log('gameStopped', gameStopped);
 
     useEffect(() => {
         function getRandomInt() {
@@ -146,44 +144,11 @@ export function FourInLineGrid() {
             function getRandomInt() {
                 return Math.floor(Math.random() * (numColumns));
             }
-            if (!player && !gameStopped) {
+            if (!player) {
                 try {
-                    scanDiagonalsGrid({
-                        direction: "BLTR",
-                        scanOwnTokens: false,
-                        ...args,
-                    });
-                    scanDiagonalsGrid({
-                        direction: "BLTR",
-                        scanOwnTokens: true,
-                        ...args,
-                    });
-                    scanDiagonalsGrid({
-                        direction: "BRTL",
-                        scanOwnTokens: false,
-                        ...args,
-                    });
-                    scanDiagonalsGrid({
-                        direction: "BRTL",
-                        scanOwnTokens: true,
-                        ...args,
-                    });
-                    scanColumns({
-                        scanOwnTokens: false,
-                        ...args,
-                    });
-                    scanColumns({
-                        scanOwnTokens: true,
-                        ...args,
-                    });
-                    scanRows({
-                        scanOwnTokens: false,
-                        ...args,
-                    });
-                    scanRows({
-                        scanOwnTokens: true,
-                        ...args,
-                    });
+                    scanRows({ ...args });
+                    scanColumns({ ...args });
+                    // scanDiagonalsGrid({ ...args });
                     setTimeout(() => {
                         addToken({
                             column: getRandomInt(),
@@ -192,13 +157,8 @@ export function FourInLineGrid() {
                     }, 2000);
                 } catch (e) {
                     console.log('e', e);
-                    if (e === "line found" && e !== "AI wins!" && e !== "Player wins!") {
-                        setTimeout(() => {
-                            addToken({
-                                column: getRandomInt(),
-                                ...args,
-                            });
-                        }, 2000);
+                    if(e === "line found" && e !== "AI wins!" && e !== "Player wins!") {
+                        checkGridForWinner(args);
                     }
                     if (e === "AI wins!" || e === "Player wins!") {
                         // we use try ... catch method to break chain of functions
@@ -213,7 +173,6 @@ export function FourInLineGrid() {
         columnsGrid,
         diagonalsBLTRGrid,
         diagonalsBRTLGrid,
-        gameStopped,
         numColumns,
         player,
         randomizeStartPlayer,
@@ -227,6 +186,8 @@ export function FourInLineGrid() {
         >
             {generateInputTockenButtons(numColumns)}
             {generateDisplayGrid(numRows, numColumns)}
+            {`${player ? "PLAYER" : "AI"} turn!`}
+            {endgameMessage}
         </div>
     )
 }

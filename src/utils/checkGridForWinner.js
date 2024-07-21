@@ -5,7 +5,7 @@ export function checkGridForWinner(args) {
         columnsGrid,
         diagonalsBLTRGrid,
         diagonalsBRTLGrid,
-        stopGame,
+        setEndgameMessage,
     } = args;
     const lines = [
         ...rowsGrid,
@@ -14,18 +14,26 @@ export function checkGridForWinner(args) {
         ...diagonalsBRTLGrid,
     ];
 
+    const diagonalsBLTR = diagonalsBLTRGrid[2].map((item) => Object.values(item)[0])
+            .join("");
+            console.log("diagonalsBLTRGrid", diagonalsBLTR);
+
+    const diagonalsBRTL = diagonalsBLTRGrid[2].map((item) => Object.values(item)[0])
+        .join("");
+    console.log("diagonalsBRTL", diagonalsBRTL);
+
     let line = 0;
     for(line; line < lines.length; line++) {
         const tokens = lines[line].map((item) => Object.values(item)[0])
             .join("");
         if (tokens.includes("PPPP")) {
-            stopGame(true);
-            throw "Player wins!";
+            setEndgameMessage("Player wins!");
+            return;
         }
         if (tokens.includes("AAAA")) {
-            stopGame(true);
-            throw "AI wins!"
+            setEndgameMessage("AI wins!");
+            return;
         }
     }
-    return "There is no winner!";
+    return;
 }

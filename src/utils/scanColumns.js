@@ -1,9 +1,6 @@
 /* eslint-disable no-throw-literal */
-import { checkGridForWinner } from "./checkGridForWinner";
-
 export function scanColumns(args) {
     const {
-        scanOwnTokens,
         columnsGrid,
         rowsGrid,
         diagonalsBLTRGrid,
@@ -24,31 +21,31 @@ export function scanColumns(args) {
 
     let column = 0;
     for (column; column < columnsGrid.length; column++) {
-        const arrTokens = Object.values(columnsGrid[column])
+        const cTokens = Object.values(columnsGrid[column])
             .map((token) => Object.values(token)[0])
             .join("");
 
-        if(arrTokens.includes(!scanOwnTokens ? 'PPPP' : 'AAAA')) {
-            checkGridForWinner(args);
-            break;
-        }
+        const psltr = ["AAA#", "PPP#"];
 
-        const substring = !scanOwnTokens ? "PPP#" : "AAA#";
-        if (arrTokens.includes(substring)) {
-            const lineIndex = arrTokens.indexOf(substring);
-            const emptyIndex = substring.indexOf("#");
-            columnsGridCopy[column][emptyIndex + lineIndex][`row${emptyIndex + lineIndex}column${column}`] = !scanOwnTokens ? 'P' : 'A';
-            setColumnsGrid(columnsGridCopy);
+        let psltrIndex = 0;
+        for (psltrIndex; psltrIndex < psltr.length; psltrIndex++) {
+            const psltrItem = psltr[psltrIndex];
+            if (cTokens.includes(psltrItem)) {
+                const lineIndex = cTokens.indexOf(psltrItem);
+                const emptyIndex = psltrItem.indexOf("#");
+                columnsGridCopy[column][emptyIndex + lineIndex][`row${emptyIndex + lineIndex}column${column}`] = 'A';
+                setColumnsGrid(columnsGridCopy);
 
-            rowsGridCopy[emptyIndex + lineIndex][column][`row${emptyIndex + lineIndex}column${column}`] = !scanOwnTokens ? 'P' : 'A';
-            setRowsGrid(rowsGridCopy);
+                rowsGridCopy[emptyIndex + lineIndex][column][`row${emptyIndex + lineIndex}column${column}`] = 'A';
+                setRowsGrid(rowsGridCopy);
 
-            updateDiagonalArr(diagonalsBLTRGridCopy, emptyIndex, column, player);
-            setDiagonalsBLTR(diagonalsBLTRGridCopy);
-            updateDiagonalArr(diagonalsBRTLGridCopy, emptyIndex, column, player);
-            setDiagonalsBRTL(diagonalsBRTLGridCopy);
-            createToken(emptyIndex + lineIndex, column, player);
-            throw "line found";
+                updateDiagonalArr(diagonalsBLTRGridCopy, emptyIndex, column, player);
+                setDiagonalsBLTR(diagonalsBLTRGridCopy);
+                updateDiagonalArr(diagonalsBRTLGridCopy, emptyIndex, column, player);
+                setDiagonalsBRTL(diagonalsBRTLGridCopy);
+                createToken(emptyIndex + lineIndex, column, player);
+                throw "line found";
+            }
         }
     }
 }
