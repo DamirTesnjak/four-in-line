@@ -6,19 +6,18 @@
 
 export function scanDiagonalsGrid(args) {
     const {
-        diagonalsBLTRGrid,
-        diagonalsBRTLGrid,
-        columnsGrid,
-        rowsGrid,
         playerFourInLines,
         aIFourInLines,
-        setRowsGrid,
-        setColumnsGrid,
-        setDiagonalsBLTR,
-        createToken,
-        setPlayer,
-        player,
+        appState,
+        setAppState,
     } = args;
+
+    const {
+        columnsGrid,
+        diagonalsBLTRGrid,
+        diagonalsBRTLGrid,
+        possibleSolutions,
+    } = appState
 
     const scanningSettings = [
         {
@@ -30,9 +29,9 @@ export function scanDiagonalsGrid(args) {
     ];
 
     const columnsGridCopy = [...columnsGrid];
-    const rowsGridCopy = [...rowsGrid];
 
     let scanIndex = 0;
+
     for (scanIndex; scanIndex < scanningSettings.length; scanIndex++) {
         const scanSetting = scanningSettings[scanIndex];
         const direction = scanSetting.direction;
@@ -84,35 +83,28 @@ export function scanDiagonalsGrid(args) {
                             `row${colIndex}column${dColumn}`
                             ] === "#"
                         ) {
-                            rowsGridCopy[colIndex][dColumn][
-                                `row${colIndex}column${dColumn}`
-                            ] = "A";
-                            setRowsGrid(rowsGridCopy);
-
-                            columnsGridCopy[dColumn][colIndex][
-                                `row${colIndex}column${dColumn}`
-                            ] = "A";
-                            setColumnsGrid(columnsGridCopy);
-                            createToken(colIndex, dColumn, player);
-                            setPlayer(true);
-                            throw "line found";
+                            setAppState({
+                                ...appState,
+                                possibleSolutions: [
+                                    ...possibleSolutions,
+                                    ...[{
+                                        rowIndex: colIndex,
+                                        columnIndex: dColumn
+                                    }],
+                                ],
+                            });
                         }
                     }
-
-                    // inserting AI token in targeted slot, updating row, columns and diagonals arrays
-                    diagonalsCopy[dIndex][solutionIndex][`row${dRow}column${dColumn}`] =
-                        "A";
-                    setDiagonalsBLTR(diagonalsCopy);
-
-                    rowsGridCopy[dRow][dColumn][`row${dRow}column${dColumn}`] = "A";
-                    setRowsGrid(rowsGridCopy);
-
-                    columnsGridCopy[dColumn][dRow][`row${dRow}column${dColumn}`] = "A";
-                    setColumnsGrid(columnsGridCopy);
-
-                    createToken(dRow, dColumn, player);
-                    setPlayer(true);
-                    throw "line found";
+                    setAppState({
+                        ...appState,
+                        possibleSolutions: [
+                            ...possibleSolutions,
+                            ...[{
+                                rowIndex: colIndex,
+                                columnIndex: dColumn
+                            }]
+                        ],
+                    });
                 }
             }
         }

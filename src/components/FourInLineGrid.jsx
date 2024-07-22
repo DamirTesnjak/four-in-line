@@ -14,7 +14,6 @@ import { scanRows } from '../utils/scanRows';
 import { scanColumns } from '../utils/scanColumns';
 import { addToken } from '../utils/addToken';
 import { updateDiagonalArr } from '../utils/updateDiagonalArr';
-import { checkGridForWinner } from "../utils/checkGridForWinner";
 
 import "./Row.css";
 
@@ -52,48 +51,56 @@ function generateDisplayGrid(rows, columns) {
 export function FourInLineGrid() {
     const numRows = 6;
     const numColumns = 7;
-    const [player, setPlayer] = useState(false);
-    const [randomizeStartPlayer, setRandomizeStartPlaxer] = useState(false);
-    const [endgameMessage, setEndgameMessage] = useState('');
-
     const rowArr = generateRowsArr(numRows, numColumns);
     const columnsArr = generateColumnsArr(numRows, numColumns);
     const diagonalsBLTR = generateDiagonalsArr(numRows, numColumns, "BLTR");
     const diagonalsBRTL = generateDiagonalsArr(numRows, numColumns, "BRTL");
 
-    const [rowsGrid, setRowsGrid] = useState(rowArr);
-    const [columnsGrid, setColumnsGrid] = useState(columnsArr);
-    const [diagonalsBLTRGrid, setDiagonalsBLTR] = useState(diagonalsBLTR);
-    const [diagonalsBRTLGrid, setDiagonalsBRTL] = useState(diagonalsBRTL);
+    const initState = {
+        player: false,                    // true - human player, false - AI
+        endgameMessage: '',       // message and the end of a game
+        possibleSolutions: [], // list of possible grid coordinates for AI to fill for a possible win
+        checkForWinner: false,    // true - check for a winner, false - do not check for a winner
+        winner: false,                    // true - we have a winner
+        randomPlayer: false,
+        rowsGrid: rowArr,
+        columnsGrid: columnsArr,
+        diagonalsBLTRGrid: diagonalsBLTR,
+        diagonalsBRTLGrid: diagonalsBRTL,
+        scannedGrid: false,
+    }
+
+    const [appState, setAppState] = useState(initState);
 
     const playerFourInLines = useMemo(() => ["PPP#", "PP#P", "P#PP", "#PPP"], []);
     const aIFourInLines = useMemo(() => ["AAA#", "AA#A", "A#AA", "#AAA"], []);
 
+    const {
+        player,                    // true - human player, false - AI
+        endgameMessage,       // message and the end of a game
+        possibleSolutions, // list of possible grid coordinates for AI to fill for a possible win
+        checkForWinner,    // true - check for a winner, false - do not check for a winner
+        winner,                    // true - we have a winner
+        randomPlayer,
+        rowsGrid,
+        columnsGrid,
+        diagonalsBLTRGrid,
+        diagonalsBRTLGrid,
+        scannedGrid,
+    } = appState;
+
     const args = useMemo(() => ({
-        diagonalsBLTRGrid,
-        diagonalsBRTLGrid,
-        columnsGrid,
-        rowsGrid,
-        playerFourInLines,
-        aIFourInLines,
-        setRowsGrid,
-        setColumnsGrid,
-        setDiagonalsBLTR,
         createToken,
-        setPlayer,
-        player,
+        appState,
+        setAppState,
         updateDiagonalArr,
-        setDiagonalsBRTL,
-        setEndgameMessage,
-    }), [
-        aIFourInLines,
-        columnsGrid,
-        diagonalsBLTRGrid,
-        diagonalsBRTLGrid,
-        player,
         playerFourInLines,
-        rowsGrid,
-        setEndgameMessage,
+        aIFourInLines,
+    }), [
+        appState,
+        setAppState,
+        playerFourInLines,
+        aIFourInLines,
     ]);
 
     function generateInputTockenButtons(columns) {
@@ -111,7 +118,7 @@ export function FourInLineGrid() {
                                 id={button}
                                 key={button}
                                 className='button-input'
-                                disabled={!player}
+                                disabled={!player || winner}
                                 onClick={() => addToken({
                                     column: index,
                                     ...args,
@@ -127,57 +134,154 @@ export function FourInLineGrid() {
     }
 
     useEffect(() => {
-        function getRandomInt() {
-            return Math.floor(Math.random() * 2);
-        }
-        if (getRandomInt() === 0) {
-            setPlayer(false);
-        } else {
-            setPlayer(true);
-        }
-        setRandomizeStartPlaxer(true);
-    }, [])
-
-    useEffect(() => {
-        if (randomizeStartPlayer) {
-
+        // random selecting which player starts:
+        // - human player
+        // - AI
+        if (!randomPlayer) {
             function getRandomInt() {
-                return Math.floor(Math.random() * (numColumns));
+                return Math.floor(Math.random() * 2);
             }
-            if (!player) {
-                try {
-                    scanRows({ ...args });
-                    scanColumns({ ...args });
-                    // scanDiagonalsGrid({ ...args });
-                    setTimeout(() => {
-                        addToken({
-                            column: getRandomInt(),
-                            ...args,
-                        });
-                    }, 2000);
-                } catch (e) {
-                    console.log('e', e);
-                    if(e === "line found" && e !== "AI wins!" && e !== "Player wins!") {
-                        checkGridForWinner(args);
-                    }
-                    if (e === "AI wins!" || e === "Player wins!") {
-                        // we use try ... catch method to break chain of functions
-                        // if we find a winner
-                        console.log("Stopping the game! Winner found!");
-                    }
+            const randomNumber = getRandomInt();
+            setAppState({
+                ...appState,
+                player: !(randomNumber === 0),
+                randomPlayer: true,
+            });
+        }
+
+        // start scanning the grid, to get pontential solution for the
+        // win of AI
+        if (
+            randomPlayer
+            && !winner 
+            && !player
+            && !scannedGrid
+        ) {
+            console.log('scanning')
+            scanDiagonalsGrid({ ...args });
+            scanColumns({ ...args });
+            scanRows({ ...args });
+            setAppState({
+                ...appState,
+                scannedGrid: true,
+            });
+        }
+
+        // updating game grid with the resut of a previous scan
+        if (randomPlayer
+            && !winner 
+            && !player
+            && scannedGrid
+            && !checkForWinner
+        ) {
+            console.log('updating')
+            if (possibleSolutions.length === 0) {
+                function getRandomInt() {
+                    return Math.floor(Math.random() * (numColumns));
+                }
+                setTimeout(() => {
+                    addToken({
+                        column: getRandomInt(),
+                        ...args,
+                    });
+                }, 2000);
+            }
+            if (!player && possibleSolutions.length > 0) {
+                function getRandomPSI() {
+                    return Math.floor(Math.random() * (possibleSolutions.length));
+                }
+
+                const pSI = getRandomPSI();
+                const pS = possibleSolutions[pSI];
+
+                const rowIndex = pS.rowIndex;
+                const columnIndex = pS.columnIndex;
+
+                const diagonalsBLTRGridCopy = [...diagonalsBLTRGrid];
+                const diagonalsBRTLGridCopy = [...diagonalsBRTLGrid];
+                const rowsGridCopy = [...rowsGrid];
+                const columnsGridCopy = [...columnsGrid];
+
+
+                const updateddDiagonalsBLTRGrid = updateDiagonalArr(diagonalsBLTRGridCopy, rowIndex, columnIndex);
+                const updatedDiagonalsBRTLGrid = updateDiagonalArr(diagonalsBRTLGridCopy, rowIndex, columnIndex);
+
+                rowsGridCopy[rowIndex][columnIndex][`row${rowIndex}column${columnIndex}`] = "A";
+                columnsGridCopy[columnIndex][rowIndex][`row${rowIndex}column${columnIndex}`] = "A";
+                createToken(rowIndex, columnIndex, player);
+
+                setAppState({
+                    ...appState,
+                    diagonalsBLTRGrid: updateddDiagonalsBLTRGrid,
+                    diagonalsBRTLGrid: updatedDiagonalsBRTLGrid,
+                    player: true,
+                    checkForWinner: true,
+                });
+            }
+        }
+
+        // checking for the winner
+        if (randomPlayer
+            && !winner 
+            && scannedGrid
+            && checkForWinner
+        ) {
+            console.log('checking winner');
+            const lines = [
+                ...rowsGrid,
+                ...columnsGrid,
+                ...diagonalsBLTRGrid,
+                ...diagonalsBRTLGrid,
+            ];
+            let line = 0;
+            for (line; line < lines.length; line++) {
+                const tokens = lines[line].map((item) => Object.values(item)[0])
+                    .join("");
+                console.log('tokens', tokens);
+                console.log("tokens.includes(PPPP)", tokens.includes("PPPP"))
+                if (tokens.includes("PPPP")) {
+                    setAppState({
+                        ...appState,
+                        endgameMessage: "Player wins!",
+                        winner: true,
+                        
+                    })
+                    break;
+                }
+                if (tokens.includes("AAAA")) {
+                    setAppState({
+                        ...appState,
+                        endgameMessage: "AI wins!",
+                        winner: true,
+                    });
+                    break;
+                }
+                if (!tokens.includes("AAAA") || !tokens.includes("PPPP")) {
+                    setAppState({
+                        ...appState,
+                        checkForWinner: false,
+                        possibleSolutions: [],
+                        scannedGrid: false,
+                    });
                 }
             }
         }
-    }, [
-        args,
+
+    }, [appState,
+        args, 
+        checkForWinner,
         columnsGrid,
         diagonalsBLTRGrid,
         diagonalsBRTLGrid,
-        numColumns,
         player,
-        randomizeStartPlayer,
+        possibleSolutions,
+        randomPlayer,
         rowsGrid,
+        scannedGrid,
+        winner,
     ])
+
+    console.log("appState", appState);
 
     return (
         <div
@@ -186,7 +290,7 @@ export function FourInLineGrid() {
         >
             {generateInputTockenButtons(numColumns)}
             {generateDisplayGrid(numRows, numColumns)}
-            {`${player ? "PLAYER" : "AI"} turn!`}
+            {!winner && `${player ? "PLAYER" : "AI"} turn!`}
             {endgameMessage}
         </div>
     )

@@ -1,20 +1,20 @@
 // adds players's token into choosen column
 export function addToken(args) {
     const {
+        createToken,
+        column,
+        appState,
+        setAppState,
+        updateDiagonalArr
+    } = args;
+
+    const {
         diagonalsBLTRGrid,
         diagonalsBRTLGrid,
         columnsGrid,
         rowsGrid,
-        setRowsGrid,
-        setColumnsGrid,
-        setDiagonalsBLTR,
-        createToken,
-        setPlayer,
         player,
-        updateDiagonalArr,
-        setDiagonalsBRTL,
-        column,
-    } = args;
+    } = appState;
 
     const columnsGridCopy = [...columnsGrid];
     const rowsGridCopy = [...rowsGrid];
@@ -33,21 +33,23 @@ export function addToken(args) {
         // A - "artificial inteligence"
         // updating columns array
         columnsGridCopy[column][row][`row${row}column${column}`] = player ? 'P' : 'A';
-        setColumnsGrid(columnsGridCopy);
 
         // updating rows array
         rowsGridCopy[row][column][`row${row}column${column}`] = player ? 'P' : 'A';
-        setRowsGrid(rowsGridCopy);
 
         // updating diagonals
-        updateDiagonalArr(diagonalsBLTRGridCopy, row, column);
-        setDiagonalsBLTR(diagonalsBLTRGridCopy);
-
-        updateDiagonalArr(diagonalsBRTLGridCopy, row, column);
-        setDiagonalsBRTL(diagonalsBRTLGridCopy);
-
+        const updateddDiagonalsBLTRGrid = updateDiagonalArr(diagonalsBLTRGridCopy, row, column, player);
+        const updatedDiagonalsBRTLGrid = updateDiagonalArr(diagonalsBRTLGridCopy, row, column, player);
         createToken(row, column, player);
 
-        setPlayer(!player);
+        setAppState({
+            ...appState,
+            rowsGrid: rowsGridCopy,
+            columnsGrid: columnsGridCopy,
+            diagonalsBLTRGrid: updateddDiagonalsBLTRGrid,
+            diagonalsBRTLGrid: updatedDiagonalsBRTLGrid,
+            player: !player,
+            checkForWinner: true,
+        });
     }
 };

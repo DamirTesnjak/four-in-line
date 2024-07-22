@@ -4,28 +4,21 @@
 // and tries to prevent player to win a game, by inserting AI's token
 // or to for AI to win
 
-import { createToken } from "./createToken.js";
 export function scanRows(args) {
     const {
-        diagonalsBLTRGrid,
-        diagonalsBRTLGrid,
-        columnsGrid,
-        rowsGrid,
         playerFourInLines,
         aIFourInLines,
-        setRowsGrid,
-        setColumnsGrid,
-        setDiagonalsBLTR,
-        setPlayer,
-        updateDiagonalArr,
-        setDiagonalsBRTL,
-        player,
+        appState,
+        setAppState,
     } = args;
 
+    const {
+        columnsGrid,
+        rowsGrid,
+        possibleSolutions,
+    } = appState
+
     const columnsGridCopy = [...columnsGrid];
-    const rowsGridCopy = [...rowsGrid];
-    const diagonalsBLTRGridCopy = [...diagonalsBLTRGrid];
-    const diagonalsBRTLGridCopy = [...diagonalsBRTLGrid];
 
     let rowIndex = 0;
     for (rowIndex; rowIndex < rowsGrid.length; rowIndex++) {
@@ -43,20 +36,38 @@ export function scanRows(args) {
             if (rTokens.includes(psltrItem)) {
                 const rIndex = rTokens.indexOf(psltrItem);
                 const solutionIndex = psltrItem.indexOf("#");
-                const column = rIndex + solutionIndex;
-                columnsGridCopy[column][solutionIndex][`row${psltrIndex}column${column}`] = "A";
-                setColumnsGrid(columnsGridCopy);
+                const rColumn = rIndex + solutionIndex;
 
-                rowsGridCopy[rowIndex][column][`row${rowIndex}column${column}`] = "A";
-                setRowsGrid(rowsGridCopy);
-
-                updateDiagonalArr(diagonalsBLTRGridCopy, rowIndex, column, player);
-                setDiagonalsBLTR(diagonalsBLTRGridCopy);
-                updateDiagonalArr(diagonalsBRTLGridCopy, rowIndex, column, player);
-                setDiagonalsBRTL(diagonalsBRTLGridCopy);
-                createToken(rowIndex, column, player);
-                setPlayer(true);
-                throw "line found";
+                let colIndex = 0;
+                for (colIndex; colIndex < rColumn; colIndex++) {
+                    //checks if a column is filled up to targeted slot
+                    if (
+                        columnsGridCopy[rColumn][colIndex][
+                        `row${colIndex}column${rColumn}`
+                        ] === "#"
+                    ) {
+                        setAppState({
+                            ...appState,
+                            possibleSolutions: [
+                                ...possibleSolutions,
+                                ...[{
+                                    rowIndex: colIndex,
+                                    columnIndex: rColumn
+                                }],
+                            ],
+                        });
+                    }
+                }
+                setAppState({
+                    ...appState,
+                    possibleSolutions: [
+                        ...possibleSolutions,
+                        ...[{
+                            rowIndex: colIndex,
+                            columnIndex: rColumn
+                        }],
+                    ],
+                });
             }
         }
     };

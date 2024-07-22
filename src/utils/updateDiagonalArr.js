@@ -14,4 +14,5 @@ export function updateDiagonalArr(diagonals, row, column, player) {
             }
         }
     }
+    return diagonalsCopy;
 };
