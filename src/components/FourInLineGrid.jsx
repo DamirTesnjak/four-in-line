@@ -158,11 +158,13 @@ export function FourInLineGrid() {
             && !scannedGrid
         ) {
             console.log('scanning')
-            scanDiagonalsGrid({ ...args });
-            scanColumns({ ...args });
-            scanRows({ ...args });
             setAppState({
                 ...appState,
+                possibleSolutions: [
+                    ...scanDiagonalsGrid({ ...args }),
+                    ...scanColumns({ ...args }),
+                    ...scanRows({ ...args }),
+                ],
                 scannedGrid: true,
             });
         }
@@ -237,8 +239,6 @@ export function FourInLineGrid() {
             for (line; line < lines.length; line++) {
                 const tokens = lines[line].map((item) => Object.values(item)[0])
                     .join("");
-                console.log('tokens', tokens);
-                console.log("tokens.includes(PPPP)", tokens.includes("PPPP"))
                 if (tokens.includes("PPPP")) {
                     setAppState({
                         ...appState,

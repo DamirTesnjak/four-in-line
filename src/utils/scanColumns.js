@@ -2,10 +2,10 @@
 export function scanColumns(args) {
     const {
         appState,
-        setAppState,
     } = args;
 
-    const { columnsGrid, possibleSolutions } = appState;
+    const { columnsGrid } = appState;
+    const possibleSolutions = [];
 
     let column = 0;
     for (column; column < columnsGrid.length; column++) {
@@ -19,20 +19,14 @@ export function scanColumns(args) {
         for (psltrIndex; psltrIndex < psltr.length; psltrIndex++) {
             const psltrItem = psltr[psltrIndex];
             if (cTokens.includes(psltrItem)) {
-                console.log('test');
                 const lineIndex = cTokens.indexOf(psltrItem);
                 const emptyIndex = psltrItem.indexOf("#");
-                setAppState({
-                    ...appState,
-                    possibleSolutions: [
-                        ...possibleSolutions,
-                        ...[{
-                            rowIndex: emptyIndex + lineIndex,
-                            columnIndex: column
-                        }]
-                    ],
+                possibleSolutions.push({
+                    rowIndex: emptyIndex + lineIndex,
+                    columnIndex: column
                 });
             }
         }
     }
+    return possibleSolutions;
 }

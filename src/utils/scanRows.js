@@ -9,18 +9,17 @@ export function scanRows(args) {
         playerFourInLines,
         aIFourInLines,
         appState,
-        setAppState,
     } = args;
 
     const {
         columnsGrid,
         rowsGrid,
-        possibleSolutions,
     } = appState
 
+    const possibleSolutions = [];
     const columnsGridCopy = [...columnsGrid];
-
     let rowIndex = 0;
+    loopRows:
     for (rowIndex; rowIndex < rowsGrid.length; rowIndex++) {
         const rTokens = Object.values(rowsGrid[rowIndex])
             .map((token) => Object.values(token)[0])
@@ -46,30 +45,19 @@ export function scanRows(args) {
                         `row${colIndex}column${rColumn}`
                         ] === "#"
                     ) {
-                        setAppState({
-                            ...appState,
-                            possibleSolutions: [
-                                ...possibleSolutions,
-                                ...[{
-                                    rowIndex: colIndex,
-                                    columnIndex: rColumn
-                                }],
-                            ],
-                        });
-                    }
-                }
-                setAppState({
-                    ...appState,
-                    possibleSolutions: [
-                        ...possibleSolutions,
-                        ...[{
+                        possibleSolutions.push({
                             rowIndex: colIndex,
                             columnIndex: rColumn
-                        }],
-                    ],
+                        });
+                        break loopRows;
+                    }
+                }
+                possibleSolutions.push({
+                    rowIndex: rowIndex,
+                    columnIndex: rColumn
                 });
             }
         }
     };
-
+    return possibleSolutions;
 }
