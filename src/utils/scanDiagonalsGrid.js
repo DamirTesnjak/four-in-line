@@ -1,22 +1,29 @@
 /* eslint-disable no-throw-literal */
-// scans diagonals for probable future solutions, e.g. player has in diagonal tokens:
-// P#PP, while P is player's token and # is an empty slot,
-// and tries to prevent player to win a game, by inserting AI's token
-// or to for AI to win
+/* eslint-disable no-throw-literal */
+/**
+ * Scans diagonals for "AAA#", "PPP#" etc.
+ * - A - AI token
+ * - P - human player token
+ * - # - empty slot
+ * 
+ * @param {object} args - Object as an argument of a function.
+ * @param {object} args.appState - Object that holds the state of all variables.
+ * @param {object} args.appState - Object that holds the state of all variables.
+ * @param {array} args.playerFourInLines - ["PPP#", "PP#P", "P#PP", "#PPP"],
+ * @param {array} args.aIFourInLines - ["AAA#", "AA#A", "A#AA", "#AAA"],
+ */
 
 export function scanDiagonalsGrid(args) {
     const {
         playerFourInLines,
         aIFourInLines,
         appState,
-        setAppState,
     } = args;
 
     const {
         columnsGrid,
         diagonalsBLTRGrid,
         diagonalsBRTLGrid,
-        possibleSolutions,
     } = appState
 
     const scanningSettings = [
@@ -30,6 +37,8 @@ export function scanDiagonalsGrid(args) {
 
     const columnsGridCopy = [...columnsGrid];
 
+    const possibleSolutions = [];
+
     let scanIndex = 0;
 
     for (scanIndex; scanIndex < scanningSettings.length; scanIndex++) {
@@ -40,6 +49,7 @@ export function scanDiagonalsGrid(args) {
         const diagonalsCopy = [...diagonals];
 
         let dIndex = 0; // diagonal index
+        loopDiagonals:
         for (dIndex; dIndex < diagonals.length; dIndex++) {
             const diagonal = diagonals[dIndex];
 
@@ -56,7 +66,7 @@ export function scanDiagonalsGrid(args) {
             for (psltrIndex; psltrIndex < psltr.length; psltrIndex++) {
                 const psltrItem = psltr[psltrIndex];
                 // if possible solution before last token for the player win
-                // corespond "row" and "column" indexes in a grid
+                // corresponds "row" and "column" indexes in a grid
                 if (dTokens.includes(psltrItem)) {
                     const solutionIndex = dTokens.split("").reverse().indexOf("#");
 
@@ -64,6 +74,7 @@ export function scanDiagonalsGrid(args) {
 
                     // diagonal in which possible solution exists
                     const dTarget = targetDiagonal[solutionIndex];
+
                     const dTargetKey = Object.keys(dTarget)[0];
 
                     // row, column game grid coordinates
@@ -83,30 +94,26 @@ export function scanDiagonalsGrid(args) {
                             `row${colIndex}column${dColumn}`
                             ] === "#"
                         ) {
-                            setAppState({
-                                ...appState,
-                                possibleSolutions: [
-                                    ...possibleSolutions,
-                                    ...[{
-                                        rowIndex: colIndex,
-                                        columnIndex: dColumn
-                                    }],
-                                ],
-                            });
-                        }
+                            // eslint-disable-next-line no-loop-func
+                            setTimeout(() => {
+                                possibleSolutions.push({
+                                    rowIndex: colIndex,
+                                    columnIndex: dColumn
+                                });
+                            }, 1000);
+                            break loopDiagonals;
+                        } 
                     }
-                    setAppState({
-                        ...appState,
-                        possibleSolutions: [
-                            ...possibleSolutions,
-                            ...[{
-                                rowIndex: colIndex,
-                                columnIndex: dColumn
-                            }]
-                        ],
-                    });
+                    setTimeout(() => {
+                        possibleSolutions.push({
+                            rowIndex: dRow,
+                            columnIndex: dColumn
+                        });
+                    }, 1000);
+                    break loopDiagonals;
                 }
             }
         }
     }
+    return possibleSolutions;
 }

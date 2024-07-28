@@ -228,7 +228,7 @@ export function FourInLineGrid() {
             && scannedGrid
             && checkForWinner
         ) {
-            console.log('checking winner');
+            console.log('checking for a winner');
             const lines = [
                 ...rowsGrid,
                 ...columnsGrid,
@@ -280,8 +280,6 @@ export function FourInLineGrid() {
         scannedGrid,
         winner,
     ])
-
-    console.log("appState", appState);
 
     return (
         <div

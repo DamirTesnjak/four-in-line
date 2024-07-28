@@ -1,4 +1,15 @@
 /* eslint-disable no-throw-literal */
+/**
+ * Scans columns for "AAA#" & "PPP#"
+ * - A - AI token
+ * - P - human player token
+ * - # - empty slot
+ * 
+ * @param {object} args - Object as an argument of a function.
+ * @param {object} args.appState - Object that holds the state of all variables.
+ * @param {array} args.columnsGrid - Array of columns,
+ */
+
 export function scanColumns(args) {
     const {
         appState,
@@ -21,10 +32,13 @@ export function scanColumns(args) {
             if (cTokens.includes(psltrItem)) {
                 const lineIndex = cTokens.indexOf(psltrItem);
                 const emptyIndex = psltrItem.indexOf("#");
-                possibleSolutions.push({
-                    rowIndex: emptyIndex + lineIndex,
-                    columnIndex: column
-                });
+                // eslint-disable-next-line no-loop-func
+                setTimeout(() => {
+                    possibleSolutions.push({
+                        rowIndex: emptyIndex + lineIndex,
+                        columnIndex: column
+                    });
+                }, 1000);
             }
         }
     }

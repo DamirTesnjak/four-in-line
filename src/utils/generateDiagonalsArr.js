@@ -1,5 +1,13 @@
-// generates "empty" diagonal array of game grid.
-// # - empty slot/position
+/**
+ * Creates an array of diagonals, where each item is an individual diagonal as array of objects.
+ * Each object holds a coordinate of token slots as key and its value.
+ * Each diagonal has [diagonal.length] number of coordinates.
+ * Value # means an empty slot for a token.
+ * 
+ * @param {number} rows - The number of rows in grid.
+ * @param {number} columns - The number of columns in grid.
+ * @param {string} direction - BLTR - bottom-left-top-right, BRTL - bottom-right-top-left.
+ */
 
 export function generateDiagonalsArr(rows, columns, direction) {
     const diagonals = [];

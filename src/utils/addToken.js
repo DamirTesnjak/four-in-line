@@ -1,4 +1,13 @@
-// adds players's token into choosen column
+/**
+ * Adds token into game grid
+ * 
+ * @param {object} args - Object as an argument of a function.
+ * @param {func} args.createToken - A method of DOM manipulation to create a token to be displayed on screen.
+ * @param {number} args.column - The index of item in array of columns.
+ * @param {object} args.appState - Object that holds the state of all variables.
+ * @param {func} args.setAppState - A method which updates the state of varables,
+ * @param {funct} args.updateDiagonalArr - A method which updates the diagonals with new sets of tokens.
+ */
 export function addToken(args) {
     const {
         createToken,

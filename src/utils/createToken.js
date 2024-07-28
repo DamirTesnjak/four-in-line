@@ -1,3 +1,11 @@
+/**
+ * A method of DOM manipulation to create a token to be displayed on screen.
+ * 
+ * @param {number} column - The index of item in array of columns.
+ * @param {number} row - The index of item in array of rows.
+ * @param {string} player - True - human player, false - AI player.
+ */
+
 export function createToken(row, column, player) {
     const newTokenContainer = document.createElement("div");
     newTokenContainer.id = `playerTokenContainer${row}Column${column}`;
@@ -8,6 +16,8 @@ export function createToken(row, column, player) {
     newTokenContainer.style.left = `${column * 100}px`;                  /* the div size */
     newTokenContainer.style.overflow = "hidden";
     newTokenContainer.style.zIndex = 0;
+    newTokenContainer.style.transform = 'translateY(0px)';
+    newTokenContainer.style.transition = 'all .3s ease-in';
 
     const gameDisplayContainer = document.getElementById("gameDisplayContainer");
     gameDisplayContainer.appendChild(newTokenContainer);
@@ -28,8 +38,9 @@ export function createToken(row, column, player) {
 
     setTimeout(() => {
         newTokenContainer.style.visibility = "visible";
-        newTokenContainer.style.top = `${(6 - row) * 100 + 23}px`;
         newTokenContainer.style.left = `${column * 100}px`;
+        newTokenContainer.style.transform = `translateY(${(6 - row) * 100}px)`;
+        newTokenContainer.style.transition = 'all .3s ease-in';
     }, 1000);
 
 }

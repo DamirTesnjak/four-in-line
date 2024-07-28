@@ -1,8 +1,15 @@
 /* eslint-disable no-throw-literal */
-// scans rows for probable future solutions, e.g. player has in a row tokens:
-// P#PP, while P is player's token and # is an empty slot,
-// and tries to prevent player to win a game, by inserting AI's token
-// or to for AI to win
+/**
+ * Scans rows for "AAA#", "PPP#" etc.
+ * - A - AI token
+ * - P - human player token
+ * - # - empty slot
+ * 
+ * @param {object} args - Object as an argument of a function.
+ * @param {object} args.appState - Object that holds the state of all variables.
+ * @param {array} args.playerFourInLines - ["PPP#", "PP#P", "P#PP", "#PPP"],
+ * @param {array} args.aIFourInLines - ["AAA#", "AA#A", "A#AA", "#AAA"],
+ */
 
 export function scanRows(args) {
     const {
@@ -45,17 +52,23 @@ export function scanRows(args) {
                         `row${colIndex}column${rColumn}`
                         ] === "#"
                     ) {
-                        possibleSolutions.push({
-                            rowIndex: colIndex,
-                            columnIndex: rColumn
-                        });
+                        // eslint-disable-next-line no-loop-func
+                        setTimeout(() => {
+                            possibleSolutions.push({
+                                rowIndex: colIndex,
+                                columnIndex: rColumn
+                            });
+                        }, 1000);
                         break loopRows;
                     }
                 }
-                possibleSolutions.push({
-                    rowIndex: rowIndex,
-                    columnIndex: rColumn
-                });
+                // eslint-disable-next-line no-loop-func
+                setTimeout(() => {
+                    possibleSolutions.push({
+                        rowIndex: rowIndex,
+                        columnIndex: rColumn
+                    });
+                }, 1000);
             }
         }
     };
