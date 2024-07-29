@@ -155,7 +155,7 @@ export function FourInLineGrid() {
         // win of AI
         if (
             randomPlayer
-            && !winner 
+            && !winner
             && !player
             && !scannedGrid
         ) {
@@ -175,7 +175,7 @@ export function FourInLineGrid() {
 
         // updating game grid with the resut of a previous scan
         if (randomPlayer
-            && !winner 
+            && !winner
             && !player
             && scannedGrid
             && !checkForWinner
@@ -230,7 +230,7 @@ export function FourInLineGrid() {
 
         // checking for the winner
         if (randomPlayer
-            && !winner 
+            && !winner
             && scannedGrid
             && checkForWinner
         ) {
@@ -250,7 +250,7 @@ export function FourInLineGrid() {
                         ...appState,
                         endgameMessage: "Player wins!",
                         winner: true,
-                        
+
                     })
                     break;
                 }
@@ -274,7 +274,7 @@ export function FourInLineGrid() {
         }
 
     }, [appState,
-        args, 
+        args,
         checkForWinner,
         columnsGrid,
         diagonalsBLTRGrid,
@@ -293,10 +293,10 @@ export function FourInLineGrid() {
             className='game-display-container'
         >
             <div className='game-title'>
-             Four in line
+                Four in line
             </div>
             <div className='center-message'>
-            {!winner && `${player ? "PLAYER" : "AI"} turn!`}
+                {!winner && `${player ? "PLAYER" : "AI"} turn!`}
             </div>
             <div className='center-message'>
                 {endgameMessage}
