@@ -1,0 +1,12 @@
+.game-title {
+    text-align: center;
+    font-size: 60px;
+    color: #0058ff;
+}
+
+.center-message {
+    padding: 0px;
+    color: #0058ff;
+    text-align: center;
+    font-size: 25px;
+}

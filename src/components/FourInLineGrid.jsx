@@ -15,7 +15,9 @@ import { scanColumns } from '../utils/scanColumns';
 import { addToken } from '../utils/addToken';
 import { updateDiagonalArr } from '../utils/updateDiagonalArr';
 
-import "./Row.css";
+import "./GameGrid.css";
+import "./Buttons.css";
+import "./Messages.css";
 
 function generateDisplayGrid(rows, columns) {
     const rowArr = generateRowsArr(rows, columns)
@@ -124,7 +126,7 @@ export function FourInLineGrid() {
                                     ...args,
                                 })}
                             >
-                                {`Column ${index}`}
+                                {`Column ${index + 1}`}
                             </button>
                         )
                     })
@@ -158,15 +160,17 @@ export function FourInLineGrid() {
             && !scannedGrid
         ) {
             console.log('scanning')
-            setAppState({
-                ...appState,
-                possibleSolutions: [
-                    ...scanDiagonalsGrid({ ...args }),
-                    ...scanColumns({ ...args }),
-                    ...scanRows({ ...args }),
-                ],
-                scannedGrid: true,
-            });
+            setTimeout(() => {
+                setAppState({
+                    ...appState,
+                    possibleSolutions: [
+                        ...scanDiagonalsGrid({ ...args }),
+                        ...scanColumns({ ...args }),
+                        ...scanRows({ ...args }),
+                    ],
+                    scannedGrid: true,
+                });
+            }, 1000);
         }
 
         // updating game grid with the resut of a previous scan
@@ -214,6 +218,8 @@ export function FourInLineGrid() {
 
                 setAppState({
                     ...appState,
+                    rowsGrid: rowsGridCopy,
+                    columnsGrid: columnsGridCopy,
                     diagonalsBLTRGrid: updateddDiagonalsBLTRGrid,
                     diagonalsBRTLGrid: updatedDiagonalsBRTLGrid,
                     player: true,
@@ -286,10 +292,17 @@ export function FourInLineGrid() {
             id="gameDisplayContainer"
             className='game-display-container'
         >
-            {generateInputTockenButtons(numColumns)}
-            {generateDisplayGrid(numRows, numColumns)}
+            <div className='game-title'>
+             Four in line
+            </div>
+            <div className='center-message'>
             {!winner && `${player ? "PLAYER" : "AI"} turn!`}
-            {endgameMessage}
+            </div>
+            <div className='center-message'>
+                {endgameMessage}
+            </div>
+            {generateDisplayGrid(numRows, numColumns)}
+            {generateInputTockenButtons(numColumns)}
         </div>
     )
 }

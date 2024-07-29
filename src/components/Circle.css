@@ -9,7 +9,8 @@
 .circle {
   width: 80%;
   height: 80%;
-  background-color: #80808000;
+  background-color: #ffffff00;
+  box-shadow: inset 10px 10px 5px rgba(0,0,0, 0.5);
   border-radius: 50%;
   border: 50px solid blue;
   margin: -40px;

@@ -1,0 +1,32 @@
+.buttons-container {
+    position: absolute;
+    left: 50%;
+    top: calc(56% + 355px);
+    transform: translate(-50%, -50%);
+    max-width: 700px;
+    min-width: 700px;
+    box-shadow: 10px 10px 5px #aaaaaa;
+}
+
+.button-input {
+    height: 50px;
+    max-width: 100px;
+    min-width: 100px;
+    border-radius: 0px;
+    border: 0px;
+    background-color: #0000ff;
+    border: 10px outset #0000ff;
+    font-family: inherit;
+    color: #fff;
+    cursor: pointer;
+}
+
+.button-input:hover {
+    border: 10px outset #00abff;
+    background-color: #00abff;
+}
+
+.button-input:active {
+    background-color: #0000ff;
+    border: 10px inset #0000ff;
+}
