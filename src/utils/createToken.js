@@ -12,11 +12,11 @@ export function createToken(row, column, player) {
     newTokenContainer.style.position = "absolute";
     newTokenContainer.style.width = "100px";                   /* the div size */
     newTokenContainer.style.height = "100px";
-    newTokenContainer.style.top = `${23}px`;
-    newTokenContainer.style.left = `${column * 100}px`;                  /* the div size */
+    newTokenContainer.style.top = `calc(56% - 355px)`;
+    newTokenContainer.style.left = `calc((50% - 300px) + (${column * 100}px) - 50px)`;                  /* the div size */
     newTokenContainer.style.overflow = "hidden";
     newTokenContainer.style.zIndex = 0;
-    newTokenContainer.style.transform = 'translateY(0px)';
+    newTokenContainer.style.transform = `translateY(-55px)`;
     newTokenContainer.style.transition = 'all .3s ease-in';
 
     const gameDisplayContainer = document.getElementById("gameDisplayContainer");
@@ -38,8 +38,8 @@ export function createToken(row, column, player) {
 
     setTimeout(() => {
         newTokenContainer.style.visibility = "visible";
-        newTokenContainer.style.left = `${column * 100}px`;
-        newTokenContainer.style.transform = `translateY(${(6 - row) * 100}px)`;
+        newTokenContainer.style.left = `calc((50% - 350px) + (${column * 100}px))`;                  /* the div size */
+        newTokenContainer.style.transform = `translateY(calc(${(6 - row) * 100 - 45}px))`;
         newTokenContainer.style.transition = 'all .3s ease-in';
     }, 1000);
 

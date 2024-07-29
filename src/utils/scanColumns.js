@@ -33,12 +33,10 @@ export function scanColumns(args) {
                 const lineIndex = cTokens.indexOf(psltrItem);
                 const emptyIndex = psltrItem.indexOf("#");
                 // eslint-disable-next-line no-loop-func
-                setTimeout(() => {
-                    possibleSolutions.push({
-                        rowIndex: emptyIndex + lineIndex,
-                        columnIndex: column
-                    });
-                }, 1000);
+                possibleSolutions.push({
+                    rowIndex: emptyIndex + lineIndex,
+                    columnIndex: column
+                });
             }
         }
     }

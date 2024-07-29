@@ -52,23 +52,17 @@ export function scanRows(args) {
                         `row${colIndex}column${rColumn}`
                         ] === "#"
                     ) {
-                        // eslint-disable-next-line no-loop-func
-                        setTimeout(() => {
-                            possibleSolutions.push({
-                                rowIndex: colIndex,
-                                columnIndex: rColumn
-                            });
-                        }, 1000);
+                        possibleSolutions.push({
+                            rowIndex: colIndex,
+                            columnIndex: rColumn
+                        });
                         break loopRows;
                     }
                 }
-                // eslint-disable-next-line no-loop-func
-                setTimeout(() => {
-                    possibleSolutions.push({
-                        rowIndex: rowIndex,
-                        columnIndex: rColumn
-                    });
-                }, 1000);
+                possibleSolutions.push({
+                    rowIndex: rowIndex,
+                    columnIndex: rColumn
+                });
             }
         }
     };

@@ -94,22 +94,17 @@ export function scanDiagonalsGrid(args) {
                             `row${colIndex}column${dColumn}`
                             ] === "#"
                         ) {
-                            // eslint-disable-next-line no-loop-func
-                            setTimeout(() => {
-                                possibleSolutions.push({
-                                    rowIndex: colIndex,
-                                    columnIndex: dColumn
-                                });
-                            }, 1000);
+                            possibleSolutions.push({
+                                rowIndex: colIndex,
+                                columnIndex: dColumn
+                            });
                             break loopDiagonals;
-                        } 
+                        }
                     }
-                    setTimeout(() => {
-                        possibleSolutions.push({
-                            rowIndex: dRow,
-                            columnIndex: dColumn
-                        });
-                    }, 1000);
+                    possibleSolutions.push({
+                        rowIndex: dRow,
+                        columnIndex: dColumn
+                    });
                     break loopDiagonals;
                 }
             }
