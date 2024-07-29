@@ -9,3 +9,5 @@ Game is designed in a way that when it is fake "AI" turn, the "AI" scans the who
 After the game is finished please refresh the page for a new game. Have a fun playing the game.
 <br><br>
 The game is pure frontend app, written with React library.
+
+![sreenshot](https://github.com/DamirTesnjak/four-in-line/blob/master/Screenshot%202024-07-29%20at%2020-06-32%20React%20App.png)
